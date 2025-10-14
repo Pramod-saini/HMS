@@ -1,0 +1,81 @@
+# ======================
+# 📦 Node / React
+# ======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+.DS_Store
+dist/
+build/
+.cache/
+.vite/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# React Testing files
+coverage/
+*.tsbuildinfo
+
+# ======================
+# 🐍 Python / Django
+# ======================
+# Virtual environment
+backend/
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django specific
+db.sqlite3
+media/
+staticfiles/
+*.log
+local_settings.py
+
+# VSCode and IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Mac & Windows files
+Thumbs.db
+.DS_Store
+
+# ======================
+# 🗄️ Environment / Secrets
+# ======================
+.env
+.env.*
+!.env.example
+
+# ======================
+# 🧪 Misc
+# ======================
+*.bak
+*.tmp
+*.swp
+*.lock
+*.pid
+
+# ======================
+# 🧱 Build / Production files
+# ======================
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+htmlcov/
+site/

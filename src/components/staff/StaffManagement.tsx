@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,23 @@ import {
   Users, UserPlus, Calendar as CalendarIcon, Clock, DollarSign,
   TrendingUp, Award, PhoneCall, Mail, MapPin, Star, Plus
 } from "lucide-react";
+
+// 🆕 Add these for searchable dropdown UI
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+
 
 interface NewStaff {
   email: string;
@@ -47,9 +63,21 @@ interface Staff {
 
 export const StaffManagement = () => {
   const accessToken = localStorage.getItem('accessToken');
+
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
   const [AllStaff, setAllStaff] = useState<any[]>([]);
   const [showAddStaff, setShowAddStaff] = useState(false);
+  const [showAddAttendance, setShowAddAttendance] = useState(false);
+  const [attendanceForm, setAttendanceForm] = useState({
+    staff_slug: "",
+    date: new Date().toISOString().split("T")[0], // Format date as YYYY-MM-DD
+    check_in: "",
+    check_out: "",
+    status: "present",
+  });
   const [activeTab, setActiveTab] = useState("overview");
 
   const [newStaff, setNewStaff] = useState<NewStaff>({
@@ -84,6 +112,58 @@ export const StaffManagement = () => {
 
     fetchData();
   }, [accessToken]);
+
+  {/*Adding Staff */ }
+  const handleAddAttendance = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (loading) return; // prevent multiple submissions
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BACKEND_URL}/api/attendance/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(attendanceForm),
+        }
+      );
+
+      const data = await response.json();
+      console.log(attendanceForm)
+
+      if (response.ok) {
+        console.log("✅ Attendance Saved:", data);
+        alert("Attendance saved successfully!");
+
+        // ✅ Reset form to initial state
+        setAttendanceForm({
+          staff_slug: "",
+          date: new Date().toISOString().split("T")[0], // Format date as YYYY-MM-DD
+          check_in: "",
+          check_out: "",
+          status: "present",
+        });
+
+        setShowAddAttendance(false); // close dialog (optional)
+
+      } else {
+        throw new Error(
+          data.detail ? JSON.stringify(data.detail) : JSON.stringify(data)
+        );
+      }
+    } catch (error) {
+      console.error("❌ Error saving attendance:", error);
+      alert("Error saving attendance. Please try again!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleAddStaff = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +217,10 @@ export const StaffManagement = () => {
       setLoading(false); // stop loading spinner
     }
   };
+
+  {/*Adding Attendance */ }
+
+
   // For storing form field data
   const [newEmployee, setNewEmployee] = useState({
     user: "",
@@ -149,6 +233,26 @@ export const StaffManagement = () => {
     shift_end: "",
     monthly_salary: "",
   });
+
+  const toTitle = (s?: string) =>
+    s
+      ? s
+        .split(/[-_\s]+/)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ")
+      : "Unknown";
+
+  // Helper to convert HH:MM time into a label (morning/afternoon/evening)
+  const toShiftLabel = (t?: string) => {
+    if (!t) return "";
+    const h = Number(t.split(":")[0]);
+    if (Number.isNaN(h)) return "";
+    if (h >= 5 && h < 12) return "morning";
+    if (h >= 12 && h < 17) return "afternoon";
+    return "evening";
+  };
+
+  const handleTimeChange = (field: "check_in" | "check_out", value: string) => setAttendanceForm(prev => ({ ...prev, [field]: value }));
 
   const [staff] = useState<Staff[]>([
     {
@@ -466,6 +570,8 @@ export const StaffManagement = () => {
         </DialogContent>
       </Dialog>
 
+
+
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         {/*
@@ -566,29 +672,86 @@ export const StaffManagement = () => {
                   <Calendar mode="single" className="rounded-md border" />
                 </div>
                 <div className="space-y-4">
-                  <h3 className="font-semibold">Today's Attendance</h3>
-                  {staff.filter(s => s.status === 'active').map((member) => (
-                    <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-sm">{member.name}</p>
-                          <p className="text-xs text-gray-600">{member.position}</p>
-                        </div>
+                  <div className="flex items-start justify-between">
+                    <h3 className="font-semibold">Today's Attendance</h3>
+
+                  </div>
+                  {/* Add Attendance Dialog (opened from this tab) */}
+
+                  {AllStaff.filter(s => s.status === 'active').map((member) => {
+                    const attendance = member.attendance_records?.[0];
+                    let shiftStart = "";
+                    let shiftEnd = "";
+
+                    if (attendance) {
+                      const checkInHour = parseInt(attendance.check_in.split(":")[0], 10);
+                      const checkOutHour = parseInt(attendance.check_out.split(":")[0], 10);
+
+                      if (checkInHour >= 5 && checkInHour < 12) {
+                        shiftStart = "Morning";
+                      } else if (checkInHour >= 12 && checkInHour < 18) {
+                        shiftStart = "Afternoon";
+                      } else {
+                        shiftStart = "Evening";
+                      }
+
+                      if (checkOutHour >= 5 && checkOutHour < 12) {
+                        shiftEnd = "Morning";
+                      } else if (checkOutHour >= 12 && checkOutHour < 18) {
+                        shiftEnd = "Afternoon";
+                      } else {
+                        shiftEnd = "Evening";
+                      }
+                    }
+
+                    return (
+                      <div className="max-h-[500px] overflow-y-auto border border-gray-200 rounded-lg">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50 sticky top-0">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Staff</th>
+                              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Check In</th>
+                              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Check Out</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {AllStaff.map((AllStaff) => (
+                              <tr key={AllStaff.id}>
+                                {/* Staff profile & name & role */}
+                                <td className="px-6 py-4 flex items-center space-x-4">
+                                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                                    <img
+                                      src={AllStaff.profile_image || "https://via.placeholder.com/40?text=👤"}
+                                      
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-900">{toTitle(AllStaff.slug)}</div>
+                                    <div className="text-xs text-gray-500">{AllStaff.designation}</div>
+                                  </div>
+                                </td>
+
+                                {/* Check In button or time */}
+                                <td className="px-6 py-4">
+                                  <button className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">
+                                    {AllStaff.check_in || "Check In"}
+                                  </button>
+                                </td>
+
+                                {/* Check Out button or time */}
+                                <td className="px-6 py-4">
+                                  <button className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                                    {AllStaff.check_out || "Check Out"}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
-                      <div className="text-right">
-                        <div className="flex space-x-1">
-                          {member.shifts.map((shift, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {shift}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </CardContent>
