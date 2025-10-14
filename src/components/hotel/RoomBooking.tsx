@@ -23,6 +23,9 @@ interface Room {
   available: boolean;
   rating: number;
   description: string;
+  hotel: string;
+  slug: string;
+  status: string;
 }
 
 export const RoomBooking = () => {
@@ -32,56 +35,19 @@ export const RoomBooking = () => {
   const [rooms, setRooms] = useState("1");
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [bookingStep, setBookingStep] = useState(1);
-
-
   const [availableRooms, setAvailableRooms] = useState([]);
-  
+
   const [guestInfo, setGuestInfo] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     address: "",
+    gender: "",
     idType: "",
     idNumber: "",
     specialRequests: ""
   });
-
-  // const availableRooms: Room[] = [
-  //   {
-  //     id: "R101",
-  //     type: "Standard Room",
-  //     price: 120,
-  //     capacity: 2,
-  //     amenities: ["Wifi", "TV", "AC", "Room Service"],
-  //     images: ["/placeholder.svg"],
-  //     available: true,
-  //     rating: 4.2,
-  //     description: "Comfortable standard room with city view"
-  //   },
-  //   {
-  //     id: "R201",
-  //     type: "Deluxe Room",
-  //     price: 180,
-  //     capacity: 3,
-  //     amenities: ["Wifi", "TV", "AC", "Mini Bar", "Balcony"],
-  //     images: ["/placeholder.svg"],
-  //     available: true,
-  //     rating: 4.5,
-  //     description: "Spacious deluxe room with premium amenities"
-  //   },
-  //   {
-  //     id: "R301",
-  //     type: "Executive Suite",
-  //     price: 350,
-  //     capacity: 4,
-  //     amenities: ["Wifi", "TV", "AC", "Mini Bar", "Jacuzzi", "Butler Service"],
-  //     images: ["/placeholder.svg"],
-  //     available: true,
-  //     rating: 4.8,
-  //     description: "Luxury suite with separate living area"
-  //   }
-  // ];
 
   // const availableRooms: Room[] = [
   //   {
@@ -157,11 +123,8 @@ export const RoomBooking = () => {
     setBookingStep(3);
   };
 
-  const handleBookingSubmit = () => {
-    if (!selectedRoom || !checkInDate || !checkOutDate) return;
-
-  const handleBookingSubmit =async() => {
-    if ( !checkInDate || !checkOutDate) return(alert("blank"));
+  const handleBookingSubmit = async () => {
+    if (!checkInDate || !checkOutDate) return (alert("blank"));
 
     const booking = {
       room: selectedRoom,
@@ -173,13 +136,6 @@ export const RoomBooking = () => {
       total: calculateTotal(),
       nights: calculateNights()
     };
-    
-    console.log("Booking submitted:", booking);
-    alert("Booking confirmed! Confirmation details will be sent to your email.");
-    setBookingStep(4);
-
-
-
     const accessToken = localStorage.getItem("accessToken");
 
     const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/rooms/`, {
@@ -190,25 +146,56 @@ export const RoomBooking = () => {
       },
     });
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-   
 
-     const availableRooms = data.filter(room => room.status === "available");
-   setAvailableRooms(availableRooms);
+
+    const availableRooms = data.filter(room => room.status === "available");
+    setAvailableRooms(availableRooms);
 
     alert("All Room Fetched Successfully");
 
-        setBookingStep(2);
-    
+    setBookingStep(2);
+
   };
-};
 
-console.log(availableRooms);
+  const handleAddBooking = async () => {
+    if (!selectedRoom || !checkInDate || !checkOutDate) return alert("Please complete all booking details");
+    const bookingDetails = {
+      check_out: checkOutDate,
+      check_in: checkInDate,
+      guests_count: guests,
+      status: selectedRoom?.status,
+      room: selectedRoom?.slug,
+      hotel: selectedRoom?.hotel,
+      guests: { first_name: guestInfo?.firstName, last_name: guestInfo?.lastName, email: guestInfo?.email, phone: guestInfo?.phone, address: guestInfo?.address, gender: "", id_proof_type: guestInfo?.idType, id_proof_number: guestInfo?.idNumber, special_request: guestInfo?.specialRequests }
+    };
+   console.log(bookingDetails);
+    try {
+      // const accessToken = localStorage.getItem("accessToken");  
+      // const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/bookings/`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //     Authorization: `Bearer ${accessToken}`,
+      //   },
+      //   body: JSON.stringify(bookingDetails),
+      // });
+      // const data = await response.json();
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // alert("Booking Successful!");
+      // setBookingStep(4);
 
- 
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      alert("Failed to create booking. Please try again.");
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -247,7 +234,7 @@ console.log(availableRooms);
                   </PopoverContent>
                 </Popover>
               </div>
-              
+
               <div>
                 <Label>Check-out Date</Label>
                 <Popover>
@@ -275,7 +262,7 @@ console.log(availableRooms);
                   </PopoverContent>
                 </Popover>
               </div>
-              
+
               <div>
                 <Label>Guests</Label>
                 <Select value={guests} onValueChange={setGuests}>
@@ -283,13 +270,13 @@ console.log(availableRooms);
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1,2,3,4,5,6].map(num => (
+                    {[1, 2, 3, 4, 5, 6].map(num => (
                       <SelectItem key={num} value={num.toString()}>{num} Guest{num > 1 ? 's' : ''}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label>Rooms</Label>
                 <Select value={rooms} onValueChange={setRooms}>
@@ -297,7 +284,7 @@ console.log(availableRooms);
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1,2,3,4].map(num => (
+                    {[1, 2, 3, 4].map(num => (
                       <SelectItem key={num} value={num.toString()}>{num} Room{num > 1 ? 's' : ''}</SelectItem>
                     ))}
                   </SelectContent>
@@ -320,7 +307,7 @@ console.log(availableRooms);
               Modify Search
             </Button>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {availableRooms.map((room) => (
               <Card key={room.id} className="hover:shadow-lg transition-shadow">
@@ -328,8 +315,8 @@ console.log(availableRooms);
                   <div className="aspect-video bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
                     <Bed className="w-8 h-8 text-gray-400" />
                   </div>
-                  
-                  <div className="space-y-3"/>
+
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold">{room.type}</h4>
                       <div className="flex items-center space-x-1">
@@ -337,18 +324,15 @@ console.log(availableRooms);
                         <span className="text-sm">{room.rating}</span>
                       </div>
                     </div>
-                    
+
                     <p className="text-sm text-gray-600">{room.description}</p>
-                    
+
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
                       <Users className="w-4 h-4" />
                       <span>Up to {room.capacity} guests</span>
                     </div>
-                    
-                    <div className="flex flex-wrap gap-2">
 
                     {/* <div className="flex flex-wrap gap-2">
->>>>>>> f20769c8 (Initial commit on ayush branch)
                       {room.amenities.slice(0, 3).map((amenity) => (
                         <Badge key={amenity} variant="secondary" className="text-xs">
                           {getAmenityIcon(amenity)}
@@ -360,12 +344,7 @@ console.log(availableRooms);
                           +{room.amenities.length - 3} more
                         </Badge>
                       )}
-
-                    </div>
-                    
-
                     </div> */}
-
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div>
                         <span className="text-2xl font-bold text-green-600">${room.price}</span>
@@ -394,54 +373,69 @@ console.log(availableRooms);
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>First Name</Label>
-                  <Input 
+                  <Input
                     value={guestInfo.firstName}
-                    onChange={(e) => setGuestInfo({...guestInfo, firstName: e.target.value})}
+                    onChange={(e) => setGuestInfo({ ...guestInfo, firstName: e.target.value })}
                     placeholder="Enter first name"
                   />
                 </div>
                 <div>
                   <Label>Last Name</Label>
-                  <Input 
+                  <Input
                     value={guestInfo.lastName}
-                    onChange={(e) => setGuestInfo({...guestInfo, lastName: e.target.value})}
+                    onChange={(e) => setGuestInfo({ ...guestInfo, lastName: e.target.value })}
                     placeholder="Enter last name"
                   />
                 </div>
               </div>
-              
+
               <div>
                 <Label>Email</Label>
-                <Input 
+                <Input
                   type="email"
                   value={guestInfo.email}
-                  onChange={(e) => setGuestInfo({...guestInfo, email: e.target.value})}
+                  onChange={(e) => setGuestInfo({ ...guestInfo, email: e.target.value })}
                   placeholder="Enter email address"
                 />
               </div>
-              
+
               <div>
                 <Label>Phone</Label>
-                <Input 
+                <Input
                   value={guestInfo.phone}
-                  onChange={(e) => setGuestInfo({...guestInfo, phone: e.target.value})}
+                  onChange={(e) => setGuestInfo({ ...guestInfo, phone: e.target.value })}
                   placeholder="Enter phone number"
                 />
               </div>
-              
+
               <div>
                 <Label>Address</Label>
-                <Textarea 
+                <Textarea
                   value={guestInfo.address}
-                  onChange={(e) => setGuestInfo({...guestInfo, address: e.target.value})}
+                  onChange={(e) => setGuestInfo({ ...guestInfo, address: e.target.value })}
                   placeholder="Enter address"
                 />
               </div>
-              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={guestInfo.gender}
+                  onChange={(e) => setGuestInfo({ ...guestInfo, gender: e.target.value })}
+                >
+                  <option value="">Select gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>ID Type</Label>
-                  <Select value={guestInfo.idType} onValueChange={(value) => setGuestInfo({...guestInfo, idType: value})}>
+                  <Select value={guestInfo.idType} onValueChange={(value) => setGuestInfo({ ...guestInfo, idType: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select ID type" />
                     </SelectTrigger>
@@ -454,34 +448,33 @@ console.log(availableRooms);
                 </div>
                 <div>
                   <Label>ID Number</Label>
-                  <Input 
+                  <Input
                     value={guestInfo.idNumber}
-                    onChange={(e) => setGuestInfo({...guestInfo, idNumber: e.target.value})}
+                    onChange={(e) => setGuestInfo({ ...guestInfo, idNumber: e.target.value })}
                     placeholder="Enter ID number"
                   />
                 </div>
               </div>
-              
+
               <div>
                 <Label>Special Requests</Label>
-                <Textarea 
+                <Textarea
                   value={guestInfo.specialRequests}
-                  onChange={(e) => setGuestInfo({...guestInfo, specialRequests: e.target.value})}
+                  onChange={(e) => setGuestInfo({ ...guestInfo, specialRequests: e.target.value })}
                   placeholder="Any special requests or preferences"
                 />
               </div>
-              
               <div className="flex space-x-2 pt-4">
                 <Button variant="outline" onClick={() => setBookingStep(2)} className="flex-1">
                   Back
                 </Button>
-                <Button onClick={handleBookingSubmit} className="flex-1">
+                <Button onClick={handleAddBooking} className="flex-1">
                   Confirm Booking
                 </Button>
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Booking Summary */}
           <Card>
             <CardHeader>
@@ -492,7 +485,7 @@ console.log(availableRooms);
                 <h4 className="font-semibold">{selectedRoom.type}</h4>
                 <p className="text-sm text-gray-600">{selectedRoom.description}</p>
               </div>
-              
+
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Check-in:</span>
@@ -515,7 +508,7 @@ console.log(availableRooms);
                   <span>{rooms}</span>
                 </div>
               </div>
-              
+
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Room Rate:</span>
