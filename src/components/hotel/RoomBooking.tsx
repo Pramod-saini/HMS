@@ -304,9 +304,6 @@ console.log(availableRooms);
                 </Select>
               </div>
             </div>
-            
-            <Button onClick={handleSearch} className="w-full" size="lg"/>
-
             <Button onClick={handleBookingSubmit} className="w-full" size="lg">
               Search Available Rooms
             </Button>
