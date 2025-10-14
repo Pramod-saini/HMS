@@ -189,7 +189,7 @@
 
 
       // Set interval to call every 6 seconds
-      const intervalId = setInterval(() => {
+      const intervalId = setTimeout(() => {
         handleGetBookings();
         handleGetRooms();
         handleGetRoomcategories();
@@ -203,17 +203,59 @@
     }, []);
 
 
-    const handleCheckIn = (bookingId: string) => {
-      setBookings(prev => prev.map(booking =>
+    const handleCheckIn = async(bookingId: string) => {
+      const status = {status:"checked_in"};
+     
+       try{
+        const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/bookings/${bookingId}/check-in/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`, // include token
+          },
+          body: JSON.stringify(status),
+        
+        });
+        const data = await response.json();
+        console.log(data);
+        if(response.ok){ 
+          setBookings(prev => prev.map(booking =>
         booking.id === bookingId ? { ...booking, status: "Active" } : booking
       ));
-      console.log(`Checking in booking ${bookingId}`);
+        }
+        return;
+       }
+       catch(error){
+         console.error("Error in checking in booking:", error);
+         return;
+       }
     };
 
-    const handleCheckOut = (bookingId: string) => {
-      setBookings(prev => prev.map(booking =>
+    const handleCheckOut = async(bookingId: string) => {
+            const status = {status:"checked_out"};
+
+
+      try{
+        const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/bookings/${bookingId}/check-out/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`, // include token
+          },
+          body: JSON.stringify(status),
+        });
+
+          if(response.ok){ 
+          setBookings(prev => prev.map(booking =>
         booking.id === bookingId ? { ...booking, status: "Completed" } : booking
       ));
+        }
+      }
+
+      catch(error){
+        console.error("Error in checking out booking:", error);
+        return;
+      }
       console.log(`Checking out booking ${bookingId}`);
     };
     const handleAddRoom = async (e: React.FormEvent) => {
@@ -307,7 +349,7 @@
               <DialogTitle>Add New Room</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleAddRoom} className="space-y-4">
-              <div>
+              {/* <div>
                 <Label htmlFor="id">Room ID</Label>
                 <Input
                   id="id"
@@ -324,7 +366,7 @@
                   onChange={e => setNewRoom(r => ({ ...r, type: e.target.value }))}
                   required
                 />
-              </div>
+              </div> */}
               <div>
                 <Label htmlFor="room_category">Category</Label>
                 <select
@@ -342,7 +384,7 @@
                 </select>
               </div>
 
-              <div>
+              {/* <div>
                 <Label htmlFor="price">Price</Label>
                 <Input
                   id="price"
@@ -351,7 +393,7 @@
                   onChange={e => setNewRoom(r => ({ ...r, price: e.target.value }))}
                   required
                 />
-              </div>
+              </div> */}
               <div>
                 <Label htmlFor="floor">Floor</Label>
                 <Input
@@ -362,7 +404,7 @@
                   required
                 />
               </div>
-              <div>
+              {/* <div>
                 <Label htmlFor="floor">Hotel</Label>
                 <Input
                   id="hotel"
@@ -372,7 +414,7 @@
                   required
                   readOnly
                 />
-              </div>
+              </div> */}
               <DialogFooter>
                 <Button type="submit">Add Room</Button>
               </DialogFooter>
