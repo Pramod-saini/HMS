@@ -32,6 +32,8 @@ export const RoomBooking = () => {
   const [rooms, setRooms] = useState("1");
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [bookingStep, setBookingStep] = useState(1);
+
+
   const [availableRooms, setAvailableRooms] = useState([]);
   
   const [guestInfo, setGuestInfo] = useState({
@@ -44,6 +46,42 @@ export const RoomBooking = () => {
     idNumber: "",
     specialRequests: ""
   });
+
+  // const availableRooms: Room[] = [
+  //   {
+  //     id: "R101",
+  //     type: "Standard Room",
+  //     price: 120,
+  //     capacity: 2,
+  //     amenities: ["Wifi", "TV", "AC", "Room Service"],
+  //     images: ["/placeholder.svg"],
+  //     available: true,
+  //     rating: 4.2,
+  //     description: "Comfortable standard room with city view"
+  //   },
+  //   {
+  //     id: "R201",
+  //     type: "Deluxe Room",
+  //     price: 180,
+  //     capacity: 3,
+  //     amenities: ["Wifi", "TV", "AC", "Mini Bar", "Balcony"],
+  //     images: ["/placeholder.svg"],
+  //     available: true,
+  //     rating: 4.5,
+  //     description: "Spacious deluxe room with premium amenities"
+  //   },
+  //   {
+  //     id: "R301",
+  //     type: "Executive Suite",
+  //     price: 350,
+  //     capacity: 4,
+  //     amenities: ["Wifi", "TV", "AC", "Mini Bar", "Jacuzzi", "Butler Service"],
+  //     images: ["/placeholder.svg"],
+  //     available: true,
+  //     rating: 4.8,
+  //     description: "Luxury suite with separate living area"
+  //   }
+  // ];
 
   // const availableRooms: Room[] = [
   //   {
@@ -119,9 +157,12 @@ export const RoomBooking = () => {
     setBookingStep(3);
   };
 
+  const handleBookingSubmit = () => {
+    if (!selectedRoom || !checkInDate || !checkOutDate) return;
+
   const handleBookingSubmit =async() => {
     if ( !checkInDate || !checkOutDate) return(alert("blank"));
-    
+
     const booking = {
       room: selectedRoom,
       checkIn: checkInDate,
@@ -132,6 +173,13 @@ export const RoomBooking = () => {
       total: calculateTotal(),
       nights: calculateNights()
     };
+    
+    console.log("Booking submitted:", booking);
+    alert("Booking confirmed! Confirmation details will be sent to your email.");
+    setBookingStep(4);
+
+
+
     const accessToken = localStorage.getItem("accessToken");
 
     const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/rooms/`, {
@@ -156,46 +204,10 @@ export const RoomBooking = () => {
         setBookingStep(2);
     
   };
+};
 
-  const handleAddBooking = async() => {
-    console.log(availableRooms);
-    if (!selectedRoom || !checkInDate || !checkOutDate) return alert("Please complete all booking details");
-    const bookingDetails = {
-      roomId: selectedRoom.id,
-      checkIn: checkInDate,
-      checkOut: checkOutDate,
-      guests: parseInt(guests),
-      rooms: parseInt(rooms),
-      guestInfo,
-      totalAmount: calculateTotal(),
-      nights: calculateNights(),
-      room : "aaa",
-      status :"booked",
-      hotel: "aaaa"
-    };
+console.log(availableRooms);
 
-    try{
-    // const accessToken = localStorage.getItem("accessToken");  
-    // const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/bookings/`, {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     Authorization: `Bearer ${accessToken}`,
-    //   },
-    //   body: JSON.stringify(bookingDetails),
-    // });
-    // const data = await response.json();
-    // if (!response.ok) {
-    //   throw new Error(`HTTP error! status: ${response.status}`);
-    // }
-    // alert("Booking Successful!");
-    // setBookingStep(4);
-
-  } catch (error) {
-    console.error("Error creating booking:", error);
-    alert("Failed to create booking. Please try again.");
-  }
-  };
  
 
   return (
@@ -293,6 +305,8 @@ export const RoomBooking = () => {
               </div>
             </div>
             
+            <Button onClick={handleSearch} className="w-full" size="lg"/>
+
             <Button onClick={handleBookingSubmit} className="w-full" size="lg">
               Search Available Rooms
             </Button>
@@ -318,7 +332,7 @@ export const RoomBooking = () => {
                     <Bed className="w-8 h-8 text-gray-400" />
                   </div>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-3"/>
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold">{room.type}</h4>
                       <div className="flex items-center space-x-1">
@@ -334,7 +348,10 @@ export const RoomBooking = () => {
                       <span>Up to {room.capacity} guests</span>
                     </div>
                     
+                    <div className="flex flex-wrap gap-2">
+
                     {/* <div className="flex flex-wrap gap-2">
+>>>>>>> f20769c8 (Initial commit on ayush branch)
                       {room.amenities.slice(0, 3).map((amenity) => (
                         <Badge key={amenity} variant="secondary" className="text-xs">
                           {getAmenityIcon(amenity)}
@@ -346,7 +363,12 @@ export const RoomBooking = () => {
                           +{room.amenities.length - 3} more
                         </Badge>
                       )}
+
+                    </div>
+                    
+
                     </div> */}
+
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div>
                         <span className="text-2xl font-bold text-green-600">${room.price}</span>
@@ -456,7 +478,7 @@ export const RoomBooking = () => {
                 <Button variant="outline" onClick={() => setBookingStep(2)} className="flex-1">
                   Back
                 </Button>
-                <Button onClick={handleAddBooking} className="flex-1">
+                <Button onClick={handleBookingSubmit} className="flex-1">
                   Confirm Booking
                 </Button>
               </div>
