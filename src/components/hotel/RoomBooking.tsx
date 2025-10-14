@@ -291,7 +291,6 @@ export const RoomBooking = () => {
                 </Select>
               </div>
             </div>
-
             <Button onClick={handleBookingSubmit} className="w-full" size="lg">
               Search Available Rooms
             </Button>
