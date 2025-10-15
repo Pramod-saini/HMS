@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +19,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Progress } from "@/components/ui/progress";
 import {
   Users, UserPlus, Calendar as CalendarIcon, Clock, DollarSign,
-  TrendingUp, Award, PhoneCall, Mail, MapPin, Star, Plus
+  TrendingUp, Award, PhoneCall, Mail, MapPin, Star, Plus, User, UserPen, Settings2, Save
 } from "lucide-react";
 
 // 🆕 Add these for searchable dropdown UI
@@ -63,6 +64,110 @@ interface Staff {
 
 export const StaffManagement = () => {
   const accessToken = localStorage.getItem('accessToken');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentMember, setCurrentMember] = useState(null);
+  const [editScore, setEditScore] = useState(0);
+
+
+
+  const [isShiftDialogOpen, setIsShiftDialogOpen] = useState(false);
+  const [currentMemberForShift, setCurrentMemberForShift] = useState(null);
+  const [shiftTimes, setShiftTimes] = useState({
+    shift_start: '09:00',
+    shift_end: '18:00'
+  });
+
+  const saveShiftTimes = async (slug: string, times: { shift_start: string, shift_end: string }) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BACKEND_URL}/api/staff/${slug}/`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(times),
+        }
+      );
+      console.log(slug)
+
+      if (!response.ok) {
+        throw new Error('Failed to save shift times');
+      }
+
+      const data = await response.json();
+      console.log('Shift times saved successfully:', data);
+      
+      // Update the local state with the new shift times
+      setAllStaff(prevStaff => 
+        prevStaff.map(staff => 
+          staff.slug === slug 
+            ? { ...staff, shift_start: times.shift_start, shift_end: times.shift_end } 
+            : staff
+        )
+      );
+      
+      return data;
+    } catch (error) {
+      console.error('Error saving shift times:', error);
+      throw error;
+    }
+  };
+
+  const updateSalary = async (staffSlug: string, newSalary: string) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BACKEND_URL}/api/staff/${staffSlug}/`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            monthly_salary: newSalary
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to update salary');
+      }
+
+      const data = await response.json();
+      console.log('Salary updated successfully:', data);
+      return data;
+    } catch (error) {
+      console.error('Error updating salary:', error);
+      throw error;
+    }
+  };
+
+  const logShiftTimes = (times: { shift_start: string, shift_end: string }) => {
+    console.log('Shift Times:', times);
+  };
+
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
+  const [salaryValue, setSalaryValue] = useState<string>("");
+
+  const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
+  const [currentStaffToTimeIn, setCurrentStaffToTimeIn] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(
+    new Date().toTimeString().split(' ')[0].substring(0, 5)
+  );
+
+  const [isCheckOutDialogOpen, setIsCheckOutDialogOpen] = useState(false);
+  const [currentStaffToTimeOut, setCurrentStaffToTimeOut] = useState(null);
+  const [selectedCheckOutTime, setSelectedCheckOutTime] = useState(
+    new Date().toTimeString().split(' ')[0].substring(0, 5) // (HH:MM)
+  );
+
+  // State for salary edit
+  const [isEditSalaryDialogOpen, setIsEditSalaryDialogOpen] = useState(false);
+  const [currentStaffForSalaryEdit, setCurrentStaffForSalaryEdit] = useState<any>(null);
+  const [editedSalary, setEditedSalary] = useState<string>("");
 
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -88,6 +193,27 @@ export const StaffManagement = () => {
     role_slug: "staff",
   });
 
+  const formatTime12Hour = (timeString: string) => {
+    // Handle both 'HH:MM:SS' and 'HH:MM' formats
+    const timePart = timeString.split('.')[0]; // Remove milliseconds if present
+    const [hours, minutes] = timePart.split(':');
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12; // Convert 0 to 12 for 12 AM
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  const getShiftLabel = (start: string | null, end: string | null) => {
+    if (!start || !end) return "No Shift";
+
+    const startHour = parseInt(start.split(":")[0], 10);
+
+    if (startHour >= 6 && startHour < 12) return "Morning";
+    if (startHour >= 12 && startHour < 16) return "Afternoon";
+    if (startHour >= 16 && startHour < 20) return "Evening";
+    return "Night"; // 20:00 - 06:00
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -112,6 +238,8 @@ export const StaffManagement = () => {
 
     fetchData();
   }, [accessToken]);
+
+
 
   {/*Adding Staff */ }
   const handleAddAttendance = async (e: React.FormEvent) => {
@@ -328,7 +456,10 @@ export const StaffManagement = () => {
         : "Unknown";
 
     const name = member.name || toTitle(member.slug) || "Unknown";
-    const position = member.position || member.designation || "Staff";
+    const designation = member.position || member.designation || "Staff";
+
+    const profileImage = member.profile_image || null;
+
     const department = member.department || "General";
     const email = member.email || member.user_email || "";
     const phone = member.phone || "";
@@ -348,11 +479,21 @@ export const StaffManagement = () => {
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-4">
               <Avatar className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600">
-                <AvatarFallback className="text-black font-semibold">{initials}</AvatarFallback>
+                {member.profile_image ? (
+                  <img
+                    src={member.profile_image}
+
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  <AvatarFallback className="text-black font-semibold flex items-center justify-center">
+                    <User className="w-6 h-6" />
+                  </AvatarFallback>
+                )}
               </Avatar>
               <div>
                 <h3 className="font-semibold text-gray-900">{name}</h3>
-                <p className="text-sm text-gray-600">{position}</p>
+                <p className="text-sm text-gray-600">{designation}</p>
                 <p className="text-xs text-gray-500">{department}</p>
               </div>
             </div>
@@ -623,38 +764,156 @@ export const StaffManagement = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Calendar */}
                 <div>
                   <Calendar mode="single" className="rounded-md border" />
                 </div>
+
+                {/* Staff List */}
                 <div className="space-y-4">
                   <h3 className="font-semibold">Today's Schedule</h3>
-                  {staff.filter(s => s.status === 'active').map((member) => (
-                    <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-sm">{member.name}</p>
-                          <p className="text-xs text-gray-600">{member.position}</p>
+                  <>
+                    {AllStaff.filter(s => s.status === 'active').map((member) => (
+                      <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        {/* Avatar + Name + Designation */}
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="w-8 h-8">
+                            {member.profile_image ? (
+                              <img
+                                src={member.profile_image}
+                                className="w-full h-full object-cover rounded-full"
+                              />
+                            ) : (
+                              <AvatarFallback className="flex items-center justify-center">
+                                <User className="w-5 h-5 text-gray-400" />
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                          <div>
+                            <p className="font-medium text-sm">{toTitle(member.slug)}</p>
+                            <p className="text-xs text-gray-600">{member.designation || "Staff"}</p>
+                          </div>
+                        </div>
+
+
+                        <div className="flex items-center space-x-2">
+                          <div className="flex space-x-1">
+                            {member.shift_start && member.shift_end ? (
+                              <div className="flex items-center space-x-1">
+                                <Badge variant="outline" className="text-xs">
+                                  {getShiftLabel(member.shift_start, member.shift_start)}                                 </Badge>
+                                <span className="text-gray-400">-</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {getShiftLabel(member.shift_end, member.shift_end)}
+                                </Badge>
+                              </div>
+                            ) : (
+                              <Badge variant="outline" className="text-xs text-gray-500 border-gray-300">
+                                No Shift Set
+                              </Badge>
+                            )}
+                          </div>
+                          <button
+                            className="w-10 h-10 flex items-center justify-center bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all"
+                            onClick={() => {
+                              setCurrentMemberForShift(member);
+                              setIsShiftDialogOpen(true);
+                              // Default values set to current shift times or default if not set
+                              const currentShift = member.shifts && member.shifts.length > 0 ? member.shifts[0] : {};
+                              setShiftTimes({
+                                shift_start: currentShift.shift_start || '09:00',
+                                shift_end: currentShift.shift_end || '18:00'
+                              });
+                            }}
+                          >
+                            <UserPen className="w-5 h-5" />
+                          </button>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="flex space-x-1">
-                          {member.shifts.map((shift, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {shift}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+
+                    {/* Shift Edit Modal UI*/}
+                    {currentMemberForShift && (
+                      <Dialog open={isShiftDialogOpen} onOpenChange={setIsShiftDialogOpen}>
+                        <DialogContent className="sm:max-w-[400px] p-0">
+                          <div className="p-6">
+                            <h3 className="text-xl font-bold mb-2 text-gray-800 flex items-center">
+                              <Clock className="w-5 h-5 mr-2 text-blue-500" /> Set Shift Time
+                            </h3>
+                            <p className="text-sm text-gray-500 mb-6">
+                              Adjust the daily shift hours for {toTitle(currentMemberForShift.slug)}.
+                            </p>
+
+                            <div className="grid grid-cols-2 gap-4 mb-8">
+                              {/* Shift Start Time Input */}
+                              <div>
+                                <label htmlFor="shift-start" className="block text-sm font-medium text-gray-700 mb-2">
+                                  Shift Start
+                                </label>
+                                <input
+                                  id="shift-start"
+                                  type="time"
+                                  value={shiftTimes.shift_start}
+                                  onChange={(e) => setShiftTimes(prev => ({ ...prev, shift_start: e.target.value }))}
+                                  className="w-full p-3 border border-gray-300 rounded-lg text-lg font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                />
+                              </div>
+
+                              {/* Shift End Time Input */}
+                              <div>
+                                <label htmlFor="shift-end" className="block text-sm font-medium text-gray-700 mb-2">
+                                  Shift End
+                                </label>
+                                <input
+                                  id="shift-end"
+                                  type="time"
+                                  value={shiftTimes.shift_end}
+                                  onChange={(e) => setShiftTimes(prev => ({ ...prev, shift_end: e.target.value }))}
+                                  className="w-full p-3 border border-gray-300 rounded-lg text-lg font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex justify-end space-x-3">
+                              <button
+                                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                                onClick={() => {
+                                  setIsShiftDialogOpen(false);
+                                  setCurrentMemberForShift(null);
+                                }}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center"
+                                onClick={async () => {
+                                  try {
+                                    await saveShiftTimes(currentMemberForShift.slug, shiftTimes);
+                                    console.log(`Shift saved for ${currentMemberForShift.slug}:`, shiftTimes);
+                                    setIsShiftDialogOpen(false);
+                                    setCurrentMemberForShift(null);
+                                  } catch (error) {
+                                    console.error('Error saving shift:', error);
+                                    // You can add error handling UI here if needed
+                                  }
+                                }}
+                              >
+                                <Save className="w-4 h-4 mr-2" />
+                                Save Shift
+                              </button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
+
+
 
 
         <TabsContent value="attendance" className="space-y-6">
@@ -715,39 +974,89 @@ export const StaffManagement = () => {
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
-                            {AllStaff.map((AllStaff) => (
-                              <tr key={AllStaff.id}>
-                                {/* Staff profile & name & role */}
-                                <td className="px-6 py-4 flex items-center space-x-4">
-                                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                                    <img
-                                      src={AllStaff.profile_image || "https://via.placeholder.com/40?text=👤"}
-                                      
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                  <div>
-                                    <div className="text-sm font-medium text-gray-900">{toTitle(AllStaff.slug)}</div>
-                                    <div className="text-xs text-gray-500">{AllStaff.designation}</div>
-                                  </div>
-                                </td>
+                            <>
+                              {AllStaff.map((AllStaff) => (
+                                <tr
+                                  key={AllStaff.id}
+                                  className="transition-all duration-200 hover:shadow-lg hover:-translate-y-1 h-16"
+                                >
+                                  <td className="px-6 py-4 flex items-center space-x-4">
+                                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 flex items-center justify-center">
+                                      {AllStaff.profile_image ? (
+                                        <img
+                                          src={AllStaff.profile_image}
+                                          alt={AllStaff.slug}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <User className="w-6 h-6 text-gray-400" />
+                                      )}
+                                    </div>
+                                    <div>
+                                      <div className="text-sm font-medium text-gray-900">{toTitle(AllStaff.slug)}</div>
 
-                                {/* Check In button or time */}
-                                <td className="px-6 py-4">
-                                  <button className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">
-                                    {AllStaff.check_in || "Check In"}
-                                  </button>
-                                </td>
+                                      <div className="text-xs text-gray-500">
+                                        {AllStaff.attendance_records && AllStaff.attendance_records.length > 0
+                                          ? (() => {
+                                            const today = new Date().toISOString().split("T")[0];
+                                            const todayRecord = AllStaff.attendance_records.find(
+                                              (r) => r.date === today
+                                            );
+                                            if (!todayRecord) return "—";
 
-                                {/* Check Out button or time */}
-                                <td className="px-6 py-4">
-                                  <button className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
-                                    {AllStaff.check_out || "Check Out"}
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
+                                            const getShift = (time) => {
+                                              if (!time) return "—";
+                                              const hour = parseInt(time.split(":")[0]);
+                                              if (hour >= 6 && hour < 12) return "Morning";
+                                              if (hour >= 12 && hour < 17) return "Afternoon";
+                                              if (hour >= 17 && hour < 21) return "Evening";
+                                              return "Night";
+                                            };
+
+                                            const checkInShift = getShift(todayRecord.check_in);
+                                            let checkOutShift = getShift(todayRecord.check_out);
+
+                                            const checkInHour = parseInt(todayRecord.check_in.split(":")[0]);
+                                            const checkOutHour = parseInt(todayRecord.check_out.split(":")[0]);
+                                            if (checkOutHour < checkInHour) checkOutShift = "Night";
+
+                                            return `${checkInShift} - ${checkOutShift}`;
+                                          })()
+                                          : "—"}
+                                      </div>
+
+                                      <div className="text-xs text-gray-500">{AllStaff.designation}</div>
+                                    </div>
+                                  </td>
+
+                                  <td className="px-6 py-4">
+                                    <button
+                                      className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                                     
+                                    >
+                                      Check In
+                                    </button>
+                                  </td>
+
+                                  <td className="px-6 py-4">
+                                    <button
+                                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                     
+                                    >
+                                      Check Out
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+
+                              
+
+                              
+                             
+                            </>
                           </tbody>
+
+
                         </table>
                       </div>
                     );
@@ -770,25 +1079,120 @@ export const StaffManagement = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {staff.map((member) => (
+                {AllStaff.map((member) => (
                   <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center space-x-4">
-                      <Avatar>
-                        {/* <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback> */}
+                      <Avatar className="w-8 h-8">
+                        {member.profile_image ? (
+                          <img
+                            src={member.profile_image}
+                            className="w-full h-full object-cover rounded-full"
+                          />
+                        ) : (
+                          <AvatarFallback className="flex items-center justify-center">
+                            <User className="w-5 h-5 text-gray-400" />
+                          </AvatarFallback>
+                        )}
                       </Avatar>
                       <div>
-                        <h3 className="font-semibold">{member.name}</h3>
-                        <p className="text-sm text-gray-600">{member.position}</p>
+                        <h3 className="font-semibold text-sm">{toTitle(member.slug)}</h3>
+                        <p className="text-xs text-gray-600">{member.designation || "Staff"}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-lg">${member.salary.toLocaleString()}</p>
-                      <p className="text-sm text-gray-600">per month</p>
+
+                    <div className="flex items-center space-x-2">
+                      <button
+                        className="w-10 h-10 flex items-center justify-center bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all"
+                        onClick={() => {
+                          setEditingMemberId(member.id);
+                          setSalaryValue(member.monthly_salary);
+                        }}
+                      >
+                        <UserPen className="w-5 h-5" />
+                      </button>
+
+                      <div className="text-right">
+                        <p className="font-semibold text-lg">${member.monthly_salary.toLocaleString()}</p>
+                        <p className="text-xs text-gray-600">per month</p>
+                      </div>
                     </div>
                   </div>
                 ))}
+
+                {editingMemberId && (
+                  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm transform transition-all">
+                      <h3 className="text-xl font-bold mb-6 text-gray-800">Edit Monthly Salary</h3>
+
+                      <div className="mb-6">
+                        <label htmlFor="salary-input" className="block text-sm font-medium text-gray-700 mb-2">
+                          New Salary Amount
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <DollarSign className="h-5 w-5 text-gray-400" />
+                          </div>
+
+                          <input
+                            id="salary-input"
+                            type="number"
+                            min={0}
+                            className="w-full border border-gray-300 focus:border-blue-500 focus:ring-blue-500 pl-10 pr-3 py-3 rounded-lg text-lg font-medium transition-colors"
+                            value={salaryValue}
+                            onChange={(e) => setSalaryValue(e.target.value)}
+                            autoFocus
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                          onClick={() => setEditingMemberId(null)}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center"
+                          onClick={async () => {
+                            const staffMember = AllStaff.find(m => m.id === editingMemberId);
+                            if (!staffMember) {
+                              console.error('Staff member not found');
+                              return;
+                            }
+
+                            try {
+                              await updateSalary(staffMember.slug, salaryValue);
+                              // Update the local state with the new salary
+                              setAllStaff(prevStaff => 
+                                prevStaff.map(s => 
+                                  s.slug === staffMember.slug 
+                                    ? { ...s, monthly_salary: salaryValue } 
+                                    : s
+                                )
+                              );
+                              setEditingMemberId(null);
+                            } catch (error) {
+                              console.error('Error updating salary:', error);
+                            }
+                          }}
+                        >
+                          {loading ? (
+                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          ) : (
+                            'Save Changes'
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
+
           </Card>
         </TabsContent>
 
@@ -803,36 +1207,127 @@ export const StaffManagement = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {staff.map((member) => (
+                {AllStaff.map((member) => (
                   <div key={member.id} className="p-4 border rounded-lg">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <Avatar>
-                          <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        <Avatar className="w-8 h-8">
+                          {member.profile_image ? (
+                            <img
+                              src={member.profile_image}
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : (
+                            <AvatarFallback>
+                              <User className="w-5 h-5 text-gray-400" />
+                            </AvatarFallback>
+                          )}
                         </Avatar>
                         <div>
-                          <h3 className="font-semibold">{member.name}</h3>
-                          <p className="text-sm text-gray-600">{member.position}</p>
+                          <h3 className="font-semibold">{toTitle(member.slug)}</h3>
+                          <p className="text-sm text-gray-600">{member.designation}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold">{member.performance}%</p>
-                        <p className="text-xs text-gray-600">Performance Score</p>
+
+                      <div className="text-right flex items-center space-x-2">
+
+
+
+                        <div>
+                          <p className="text-lg font-bold">{member.performance_score}%</p>
+                          <p className="text-xs text-gray-600">Performance Score</p>
+                        </div>
                       </div>
                     </div>
-                    <Progress value={member.performance} className="h-3" />
+
+                    <Progress value={member.performance_score} className="h-3" />
+
                     <div className="flex justify-between text-xs text-gray-600 mt-2">
-                      <span>Joined: {new Date(member.joinDate).toLocaleDateString()}</span>
-                      <span className={member.performance >= 90 ? "text-green-600 font-semibold" :
-                        member.performance >= 80 ? "text-yellow-600 font-semibold" : "text-red-600 font-semibold"}>
-                        {member.performance >= 90 ? "Excellent" :
-                          member.performance >= 80 ? "Good" : "Needs Improvement"}
+                      <span>
+                        Joined:{" "}
+                        {member.joining_date &&
+                          new Date(member.joining_date).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                      </span>
+
+                      <span
+                        className={
+                          member.performance_score >= 90
+                            ? "text-green-600 font-semibold"
+                            : member.performance_score >= 80
+                              ? "text-yellow-600 font-semibold"
+                              : "text-red-600 font-semibold"
+                        }
+                      >
+                        {member.performance_score >= 90
+                          ? "Excellent"
+                          : member.performance_score >= 80
+                            ? "Good"
+                            : "Needs Improvement"}
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
             </CardContent>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>
+                    Edit Performance for {currentMember ? toTitle(currentMember.slug) : ''}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Update the performance score below.
+                  </DialogDescription>
+                </DialogHeader>
+
+                {currentMember && (
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <label htmlFor="score" className="text-right">
+                        Score (%)
+                      </label>
+                      <input
+                        id="score"
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={editScore}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          setEditScore(isNaN(value) ? 0 : Math.max(0, Math.min(100, value)));
+                        }}
+                        className="col-span-3 p-2 border rounded-md text-base focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => {
+                      if (currentMember) {
+                        const updatedStaff = AllStaff.map(m =>
+                          m.id === currentMember.id
+                            ? { ...m, performance_score: editScore }
+                            : m
+                        );
+                        setAllStaff(updatedStaff);
+                      }
+                      setIsDialogOpen(false);
+                    }}
+                    disabled={editScore < 0 || editScore > 100}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </Card>
         </TabsContent>
       </Tabs>
