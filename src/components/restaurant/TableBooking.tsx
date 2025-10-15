@@ -21,6 +21,7 @@ interface Table {
   available: boolean;
   x: number;
   y: number;
+  slug: string;
 }
 
 interface TimeSlot {
@@ -37,7 +38,7 @@ export const TableBooking = () => {
   const [bookingStep, setBookingStep] = useState(1);
     const accessToken = localStorage.getItem('accessToken'); // get token from localStorage
 
-  
+  console.log(selectedTable)
   const [reservationInfo, setReservationInfo] = useState({
     name: "",
     email: "",
@@ -94,6 +95,7 @@ export const TableBooking = () => {
     );
   };
 
+
   const handleSearch = async() => {
     if (!selectedDate || !selectedTime) {
       alert("Please select both date and time before proceeding.");
@@ -120,7 +122,9 @@ export const TableBooking = () => {
       available: true,            // ✅ component ke filter ke liye
       x: table.x ?? (index % 5) * 80 + 50,  // fallback positioning
       y: table.y ?? Math.floor(index / 5) * 80 + 50,
+      slug: table?.slug,
     }));
+    console.log(data,availableTables);
   setTables(availableTables);
   setBookingStep(2);
 }
@@ -139,21 +143,43 @@ export const TableBooking = () => {
     setBookingStep(3);
   };
 
-  const handleReservationSubmit = () => {
-    if (!selectedTable || !selectedDate || !selectedTime) return;
+  const handleReservationSubmit = async() => {
+    if (!selectedTable?.slug || !selectedDate || !selectedTime) return;
+
+    const time = selectedTime;
+const cleanTime = time.replace(/ AM| PM/, "");
     
     const reservation = {
-      table: selectedTable,
-      date: selectedDate,
-      time: selectedTime,
-      partySize: parseInt(partySize),
-      reservationInfo,
-      timestamp: new Date()
+      table: selectedTable?.slug,
+      reservation_date: selectedDate?.toISOString().split("T")[0],
+      reservation_time: cleanTime,
+      full_name: reservationInfo?.name,
+      email: reservationInfo?.email,
+      phone: reservationInfo?.phone,
+      special_requests: reservationInfo?.specialRequests,
+      occasion: reservationInfo?.occasion,
     };
-    
-    console.log("Reservation submitted:", reservation);
-    alert("Table reserved successfully! Confirmation details will be sent to your email.");
-    setBookingStep(4);
+    console.log(reservation);
+   try{
+     const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/table-reservations/`, {
+          method: 'POST',
+          headers: {
+            "Content-Type": "application/json", // ✅ yeh zaroori hai
+            Authorization: `Bearer ${accessToken}`, // ✅ token agar protected API hai
+          },
+          body: JSON.stringify(reservation),
+        });
+        const data = await response.json();
+        console.log(data);
+        if(response.ok){
+          alert("Table reserved successfully! Confirmation details will be sent to your email.");
+          setBookingStep(4);
+        }
+        else{throw new Error(`Failed to submit reservation: ${await response.text()}`);}
+   }
+   catch(error){
+      console.error("Error submitting reservation:", error);
+    }
   };
 
   return (

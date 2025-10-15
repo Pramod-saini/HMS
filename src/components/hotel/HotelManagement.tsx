@@ -34,7 +34,9 @@
     const [bookings, setBookings] = useState([]);
 
     const [showAddRoom, setShowAddRoom] = useState(false);
+    const [showEditRoom, setShowEditRoom] = useState(false);
     const[Roomcategories,setRoomcategories]=useState([]);
+    const [editingSlug, setEditingSlug] = useState("");
     const [newRoom, setNewRoom] = useState({
       id: "",
       type: "",
@@ -45,6 +47,16 @@
       floor: "",
       hotel: "taj-mahal-hotel",
     });
+    // const [editRoom, setEditRoom] = useState({
+    //   id: "",
+    //   type: "",
+    //   status: "available",
+    //   room_category: "",
+    //   price: "",
+    //   guest: "",
+    //   floor: "",
+    //   hotel: "taj-mahal-hotel",
+    // });
     const[dashboardData,setDashboardData]=useState({});
 
     const accessToken = localStorage.getItem("accessToken");
@@ -189,7 +201,7 @@
 
 
       // Set interval to call every 6 seconds
-      const intervalId = setInterval(() => {
+      const intervalId = setTimeout(() => {
         handleGetBookings();
         handleGetRooms();
         handleGetRoomcategories();
@@ -203,19 +215,66 @@
     }, []);
 
 
-    const handleCheckIn = (bookingId: string) => {
-      setBookings(prev => prev.map(booking =>
+    const handleCheckIn = async(bookingId: string) => {
+      const status = {status:"checked_in"};
+     
+       try{
+        const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/bookings/${bookingId}/check-in/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`, // include token
+          },
+          body: JSON.stringify(status),
+        
+        });
+        const data = await response.json();
+        console.log(data);
+        if(response.ok){ 
+          setBookings(prev => prev.map(booking =>
         booking.id === bookingId ? { ...booking, status: "Active" } : booking
       ));
-      console.log(`Checking in booking ${bookingId}`);
+        }
+        return;
+       }
+       catch(error){
+         console.error("Error in checking in booking:", error);
+         return;
+       }
     };
 
-    const handleCheckOut = (bookingId: string) => {
-      setBookings(prev => prev.map(booking =>
+    const handleCheckOut = async(bookingId: string) => {
+            const status = {status:"checked_out"};
+
+
+      try{
+        const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/bookings/${bookingId}/check-out/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`, // include token
+          },
+          body: JSON.stringify(status),
+        });
+
+        const data = await response.json();
+        console.log(data);
+
+          if(response.ok){ 
+          setBookings(prev => prev.map(booking =>
         booking.id === bookingId ? { ...booking, status: "Completed" } : booking
       ));
+        }
+      }
+
+      catch(error){
+        console.error("Error in checking out booking:", error);
+        return;
+      }
       console.log(`Checking out booking ${bookingId}`);
     };
+
+    // Add room
     const handleAddRoom = async (e: React.FormEvent) => {
       e.preventDefault();
       try {
@@ -273,6 +332,101 @@
         alert("Something went wrong while adding room");
       }
     };
+  // ✅ Edit room
+  const handleEditRoom = async (e) => {
+    e.preventDefault();
+    try {
+      const roomData = {
+        ...newRoom,
+        price: Number(newRoom.price) || 0,
+        floor: Number(newRoom.floor) || 0,
+        guest: newRoom.guest || null,
+      };
+
+      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/rooms/${editingSlug}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(roomData),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Error updating room:", data);
+        return;
+      }
+
+      alert("Room updated successfully");
+
+      // ✅ Update local state
+      setRooms((prev) =>
+        prev.map((room) => (room.slug === editingSlug ? { ...room, ...data } : room))
+      );
+
+      setShowEditRoom(false);
+      resetForm();
+    } catch (error) {
+      console.error("Error updating room:", error);
+    }
+  };
+
+      const resetForm = () => {
+    setNewRoom({
+      id: "",
+      type: "",
+      status: "available",
+      room_category: "",
+      price: "",
+      guest: "",
+      floor: "",
+      hotel: "taj-mahal-hotel",
+    });
+  };
+
+    const deleteRoom = async (slug: string) => {
+    try {
+      // Send GET request
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BACKEND_URL}/api/rooms/${slug}/`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // include token
+          },
+        }
+      );
+
+      
+      if (!response.ok) {
+        const data = await response.json();
+        console.error("Error deleting room: ", data);
+       return;
+      } 
+      // console.log('Room deleted Successfully')
+      setRooms((prev) => prev.filter((room) => room.id !== slug));    
+    console.log("Room deleted successfully"); 
+    } catch (error) {
+      console.error("Error delete room:", error);
+    }
+  };
+
+  // ✅ Handle Edit click (pre-fills form)
+  const handleEdit = (room) => {
+    setNewRoom({
+      id: room.room_number || room.id,
+      type: room.room_category,
+      status: room.status,
+      room_category: room.room_category,
+      price: room.price_per_night,
+      guest: room.guest || "",
+      floor: room.floor,
+      hotel: room.hotel,
+    });
+    setEditingSlug(room.slug);
+    setShowEditRoom(true);
+  };
 
     return (
       <div className="space-y-6 px-2 sm:px-4 md:px-8 max-w-[1400px] mx-auto">
@@ -307,7 +461,7 @@
               <DialogTitle>Add New Room</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleAddRoom} className="space-y-4">
-              <div>
+              {/* <div>
                 <Label htmlFor="id">Room ID</Label>
                 <Input
                   id="id"
@@ -324,7 +478,7 @@
                   onChange={e => setNewRoom(r => ({ ...r, type: e.target.value }))}
                   required
                 />
-              </div>
+              </div> */}
               <div>
                 <Label htmlFor="room_category">Category</Label>
                 <select
@@ -342,7 +496,7 @@
                 </select>
               </div>
 
-              <div>
+              {/* <div>
                 <Label htmlFor="price">Price</Label>
                 <Input
                   id="price"
@@ -351,7 +505,7 @@
                   onChange={e => setNewRoom(r => ({ ...r, price: e.target.value }))}
                   required
                 />
-              </div>
+              </div> */}
               <div>
                 <Label htmlFor="floor">Floor</Label>
                 <Input
@@ -362,7 +516,7 @@
                   required
                 />
               </div>
-              <div>
+              {/* <div>
                 <Label htmlFor="floor">Hotel</Label>
                 <Input
                   id="hotel"
@@ -372,13 +526,92 @@
                   required
                   readOnly
                 />
-              </div>
+              </div> */}
               <DialogFooter>
                 <Button type="submit">Add Room</Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
+
+      {/* edit Room Dialog */}
+
+      <Dialog open={showEditRoom} onOpenChange={setShowEditRoom}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Room</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditRoom} className="space-y-4">
+            <div>
+              <Label htmlFor="id">Room ID</Label>
+              <Input
+                id="id"
+                value={newRoom.id}
+                onChange={e => setNewRoom(r => ({ ...r, id: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="type">Type</Label>
+              <Input
+                id="type"
+                value={newRoom.type}
+                onChange={e => setNewRoom(r => ({ ...r, type: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="room_category">Category</Label>
+              <select
+                id="room_category"
+                value={newRoom.room_category}
+                onChange={e => setNewRoom(r => ({ ...r, room_category: e.target.value }))}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">-- Select Category --</option>
+                {Roomcategories.map((category:any) => (
+                  <option key={category.id} value={category.name}>{category.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="price">Price</Label>
+              <Input
+                id="price"
+                type="number"
+                value={newRoom.price}
+                onChange={e => setNewRoom(r => ({ ...r, price: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="floor">Floor</Label>
+              <Input
+                id="floor"
+                type="number"
+                value={newRoom.floor}
+                onChange={e => setNewRoom(r => ({ ...r, floor: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="hotel">Hotel</Label>
+              <Input
+                id="hotel"
+                type="text"
+                value={newRoom.hotel}
+                onChange={e => setNewRoom(r => ({ ...r, hotel: e.target.value }))}
+                required
+                readOnly
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit">Update Room</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
         {/* Quick Stats */}
         <div className="mb-2">
@@ -445,10 +678,12 @@
             </CardHeader>
             <CardContent>
               <RoomGrid
-                rooms={filteredRooms}
-                filter={filter}
-                onStatusChange={handleRoomStatusChange}
-                getStatusColor={getStatusColor}
+               rooms={filteredRooms}
+              filter={filter}
+              onStatusChange={handleRoomStatusChange}
+              getStatusColor={getStatusColor}
+              onDelete={deleteRoom}
+              onEdit={handleEdit}
               />
             </CardContent>
           </Card>
@@ -479,7 +714,7 @@
           </Card>
         )}
 
-        {activeTab === "booking" && <RoomBooking />}
+        {activeTab === "booking" && <RoomBooking category={Roomcategories} />}
       </div>
     );
   };
