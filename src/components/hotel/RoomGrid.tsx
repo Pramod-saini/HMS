@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface Room {
@@ -29,9 +28,11 @@ interface RoomCategory {
 
 interface RoomGridProps {
   rooms: Room[];
-  filter: (value: string, slug:string) => void;
+  filter: (value: string, slug: string) => void;
   onStatusChange: (roomId: string, newStatus: string) => void;
   getStatusColor: (status: string) => string;
+  onDelete: (slug: string) => void;
+  onEdit: (room: Room) => void;
 }
 
 export const RoomGrid = ({
@@ -39,28 +40,23 @@ export const RoomGrid = ({
   onStatusChange,
   getStatusColor,
   filter,
+  onDelete,
+  onEdit,
 }: RoomGridProps) => {
   const [Roomcategories, setRoomcategories] = useState<RoomCategory[]>([]);
 
   const handleGetRoomcategories = async () => {
     const accessToken = localStorage.getItem("accessToken");
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BACKEND_URL}/api/room-categories/`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/room-categories/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
       const data = await response.json();
-      if (!response.ok) {
-        console.error("Error fetching room categories:", response.status);
-        return;
-      }
-      setRoomcategories(data);
+      if (response.ok) setRoomcategories(data);
     } catch (error) {
       console.error("Error in fetching room categories:", error);
     }
@@ -73,15 +69,10 @@ export const RoomGrid = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {rooms.map((room) => {
-        const matchedCategory = Roomcategories.find(
-          (cat) => cat.name === room.room_category
-        );
+        const matchedCategory = Roomcategories.find((cat) => cat.name === room.room_category);
 
         return (
-          <div
-            key={room.id}
-            className="p-4 border rounded-lg hover:shadow-md transition-shadow"
-          >
+          <div key={room.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-lg">{room.room_number}</h3>
               <Badge className={getStatusColor(room.status)}>
@@ -91,10 +82,7 @@ export const RoomGrid = ({
 
             <div className="space-y-2">
               <p className="text-sm text-gray-600">
-                Type:{" "}
-                <span className="font-medium">
-                  {matchedCategory?.name || room.room_category}
-                </span>
+                Type: <span className="font-medium">{matchedCategory?.name || room.room_category}</span>
               </p>
 
               <p className="text-sm text-gray-600">
@@ -102,10 +90,7 @@ export const RoomGrid = ({
               </p>
 
               <p className="text-sm text-gray-600">
-                Price:{" "}
-                <span className="font-medium text-green-600">
-                  ₹{matchedCategory?.price_per_night ?? "N/A"}/night
-                </span>
+                Price: <span className="font-medium text-green-600">₹{matchedCategory?.price_per_night ?? "N/A"}/night</span>
               </p>
 
               {room.guest && (
@@ -116,15 +101,26 @@ export const RoomGrid = ({
             </div>
 
             <div className="mt-3 pt-3 border-t flex space-x-2">
-              <Button variant="outline" size="sm" className="flex-1">
-                <Eye className="w-3 h-3 mr-1" />
-                View
+              <Button
+                variant="outline"
+                className="flex items-center justify-center w-9 h-9 hover:-translate-y-1 bg-blue-100 hover:bg-blue-300 rounded-lg"
+                onClick={() => onEdit(room)}
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+
+              <Button
+                variant="outline"
+                className="flex items-center justify-center w-9 h-9 hover:-translate-y-1 bg-red-100 hover:bg-red-300 rounded-lg"
+                onClick={() => onDelete(room.slug)}
+              >
+                <Trash2 className="w-4 h-4" />
               </Button>
 
               <Select
                 onValueChange={(value) => {
                   onStatusChange(room.id, value);
-                  filter(value,room?.slug);
+                  filter(value, room.slug);
                 }}
               >
                 <SelectTrigger className="flex-1">
@@ -144,4 +140,3 @@ export const RoomGrid = ({
     </div>
   );
 };
-
