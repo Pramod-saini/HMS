@@ -15,6 +15,7 @@ import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 import { RoomBooking } from "./components/hotel/RoomBooking";
 import { RestaurantManagement } from "./components/restaurant/RestaurantManagement";
+import HotelDashboard from "./components/dashboard/HotelDashboard";
 
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/menu-management" element={<MenuManagement />} />
           <Route path="/analytics" element={<Analytics />} />
            <Route path="/booking" element={<RoomBooking />} />
+           <Route path="/hotelDashboard" element={<HotelDashboard />} />
           <Route path="/RestaurantManagement" element={<RestaurantManagement/>}/>
           {/* <Route path="/"/> */}
           

@@ -9,6 +9,8 @@ export const getStatusColor = (status: string) => {
       return "bg-yellow-100 text-yellow-800";
     case "maintenance":
       return "bg-red-100 text-red-800";
+    case "in-active":
+      return "bg-red-100 text-red-800";
     case "active":
       return "bg-green-100 text-green-800";
     case "confirmed":

@@ -183,6 +183,14 @@ export const DashboardOverview = () => {
             
               <Button
                 className="w-full justify-start h-10 lg:h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 text-sm lg:text-base font-semibold"
+                onClick={() => navigate("/hotelDashboard")}
+              >
+                <Calendar className="w-5 h-5 lg:w-6 lg:h-6 mr-3 lg:mr-4" />
+                Add New Hotel
+              </Button>
+              <Button
+               className="w-full justify-start h-10 lg:h-12 text-sm lg:text-base font-semibold"
+                variant="outline"
                 onClick={() => navigate("/booking")}
               >
                 <Calendar className="w-5 h-5 lg:w-6 lg:h-6 mr-3 lg:mr-4" />
