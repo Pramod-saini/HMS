@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,8 @@ interface Room {
   status: string;
 }
 
-export const RoomBooking = () => {
+export const RoomBooking = (category) => {
+  console.log(category.category);
   const [checkInDate, setCheckInDate] = useState<Date>();
   const [checkOutDate, setCheckOutDate] = useState<Date>();
   const [guests, setGuests] = useState("1");
@@ -36,7 +37,7 @@ export const RoomBooking = () => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [bookingStep, setBookingStep] = useState(1);
   const [availableRooms, setAvailableRooms] = useState([]);
-
+const [matchedCategories, setMatchedCategories] = useState([]);
   const [guestInfo, setGuestInfo] = useState({
     firstName: "",
     lastName: "",
@@ -85,6 +86,24 @@ export const RoomBooking = () => {
   //   }
   // ];
 
+
+  useEffect(() => {
+    if (availableRooms.length && category.category.length) {
+      const matched = availableRooms.map((room) => {
+        const cat = category.category.find(
+          (cat) => cat.name === room.room_category
+        );
+
+        return {
+          roomId: room.id,
+          categoryName: cat?.name || "Unknown",
+          price: cat?.price_per_night || "N/A",
+        };
+      });
+      setMatchedCategories(matched);
+    }
+  }, [availableRooms, category]);
+
   const getAmenityIcon = (amenity: string) => {
     switch (amenity.toLowerCase()) {
       case 'wifi': return <Wifi className="w-4 h-4" />;
@@ -118,10 +137,17 @@ export const RoomBooking = () => {
     setBookingStep(2);
   };
 
-  const handleRoomSelect = (room: Room) => {
-    setSelectedRoom(room);
-    setBookingStep(3);
+ const handleRoomSelect = (room: Room, matched: { price?: number; categoryName?: string }) => {
+  const updatedRoom: Room = {
+    ...room,
+    price:  matched?.price || 0,
+    type:  matched?.categoryName || "Unknown",
   };
+   console.log(updatedRoom);
+  setSelectedRoom(updatedRoom);
+  setBookingStep(3);
+};
+
 
   const handleBookingSubmit = async () => {
     if (!checkInDate || !checkOutDate) return (alert("blank"));
@@ -153,6 +179,7 @@ export const RoomBooking = () => {
 
 
     const availableRooms = data.filter(room => room.status === "available");
+    console.log(availableRooms);
     setAvailableRooms(availableRooms);
 
     alert("All Room Fetched Successfully");
@@ -163,23 +190,23 @@ export const RoomBooking = () => {
 
   const handleAddBooking = async () => {
 
-  const toYYYYMMDD = (d) => new Date(d).toISOString().split('T')[0];
+    const toYYYYMMDD = (d) => new Date(d).toISOString().split('T')[0];
 
-    
+
     if (!selectedRoom || !checkInDate || !checkOutDate) return alert("Please complete all booking details");
     const bookingDetails = {
 
-     check_in: toYYYYMMDD(checkInDate),
-  check_out: toYYYYMMDD(checkOutDate),
+      check_in: toYYYYMMDD(checkInDate),
+      check_out: toYYYYMMDD(checkOutDate),
       guests_count: guests,
       status: "confirmed",
       room: selectedRoom?.slug,
       hotel: selectedRoom?.hotel,
       guests: [{ first_name: guestInfo?.firstName, last_name: guestInfo?.lastName, email: guestInfo?.email, phone: guestInfo?.phone, address: guestInfo?.address, gender: "", id_proof_type: guestInfo?.idType, id_proof_number: guestInfo?.idNumber, special_request: guestInfo?.specialRequests }]
     };
-   console.log(bookingDetails);
+    console.log(bookingDetails);
     try {
-      const accessToken = localStorage.getItem("accessToken");  
+      const accessToken = localStorage.getItem("accessToken");
       const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/bookings/`, {
         method: "POST",
         headers: {
@@ -314,57 +341,62 @@ export const RoomBooking = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {availableRooms.map((room) => (
-              <Card key={room.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="aspect-video bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                    <Bed className="w-8 h-8 text-gray-400" />
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-semibold">{room.type}</h4>
-                      <div className="flex items-center space-x-1">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm">{room.rating}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {availableRooms.map((room) => {
+                  const matched = matchedCategories.find((item) => item.roomId === room.id);
+                  return(
+                  <Card key={room.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="aspect-video bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
+                        <Bed className="w-8 h-8 text-gray-400" />
                       </div>
-                    </div>
 
-                    <p className="text-sm text-gray-600">{room.description}</p>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">
+                            {matched?.categoryName || "Unknown"}
+                          </h4>
+                          <div className="flex items-center space-x-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm">{room.rating}</span>
+                          </div>
+                        </div>
 
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Users className="w-4 h-4" />
-                      <span>Up to {room.capacity} guests</span>
-                    </div>
+                        <p className="text-sm text-gray-600">{room.description}</p>
 
-                    {/* <div className="flex flex-wrap gap-2">
-                      {room.amenities.slice(0, 3).map((amenity) => (
-                        <Badge key={amenity} variant="secondary" className="text-xs">
-                          {getAmenityIcon(amenity)}
-                          <span className="ml-1">{amenity}</span>
-                        </Badge>
-                      ))}
-                      {room.amenities.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{room.amenities.length - 3} more
-                        </Badge>
-                      )}
-                    </div> */}
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div>
-                        <span className="text-2xl font-bold text-green-600">${room.price}</span>
-                        <span className="text-sm text-gray-600">/night</span>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Users className="w-4 h-4" />
+                          <span>Up to {room.capacity} guests</span>
+                        </div>
+
+                        {/* <div className="flex flex-wrap gap-2">
+                          {room.amenities.slice(0, 3).map((amenity) => (
+                            <Badge key={amenity} variant="secondary" className="text-xs">
+                              {getAmenityIcon(amenity)}
+                              <span className="ml-1">{amenity}</span>
+                            </Badge>
+                          ))}
+                          {room.amenities.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{room.amenities.length - 3} more
+                            </Badge>
+                          )}
+                        </div> */}
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <div>
+                            <span className="text-2xl font-bold text-green-600">${ matched?.price || "N/A"}</span>
+                            <span className="text-sm text-gray-600">/night</span>
+                          </div>
+                          <Button onClick={() => handleRoomSelect(room, matched)}>
+                            Select Room
+                          </Button>
+                        </div>
                       </div>
-                      <Button onClick={() => handleRoomSelect(room)}>
-                        Select Room
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                 ) }
+                )}
+              </div>
         </div>
       )}
 
