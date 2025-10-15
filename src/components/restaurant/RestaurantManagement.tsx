@@ -448,6 +448,7 @@ const getMenuItemsCategories = async () => {
   const [qty3, setQty3] = useState("");
   const [reserveComments, setReserveComments] = useState("");
   const [hotelMenus, setHotelMenus] = useState([]);
+  const [dashboardSummary, setDashboardSummary] = useState(null)
 
 
   const getHotelMenu = async () => {
@@ -489,6 +490,36 @@ const getMenuItemsCategories = async () => {
     setReserveName("");
   };
 
+console.log(dashboardSummary)
+  const handleDashboard = async()=> {
+    try{
+        const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/dashboard/dashboard-summary/`, {
+          method: 'GET',
+           headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`, // include token
+        },
+        }) 
+
+        const data = await response.json();
+
+               if(response.ok){
+                   setDashboardSummary(data)
+                 }else{
+                   throw new Error(`Failed to get dashboard summary: ${await response.text()}`);
+                 }
+
+    }
+    catch(error){
+      alert("Something went wrong");
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+  handleDashboard();
+  }, []);
+
   const [orderBoxes, setOrderBoxes] = useState([
     { item: "", qty: 0 },
     { item: "", qty: 0 },
@@ -516,6 +547,9 @@ const getMenuItemsCategories = async () => {
   const sgst = subtotal * 0.025;
   const cgst = subtotal * 0.025;
   const grandTotal = subtotal + sgst + cgst;
+
+
+  
 
   return (
     <div className="space-y-6 px-2 sm:px-4 md:px-8 max-w-[1600px] mx-auto">
@@ -636,7 +670,7 @@ const getMenuItemsCategories = async () => {
                 <option value="cleaning">Cleaning</option>
               </select>
             </div>
-            <div>
+            {/* <div>
               <Label htmlFor="hotel">Hotel</Label>
               <Input
                 id="hotel"
@@ -651,7 +685,7 @@ const getMenuItemsCategories = async () => {
                 required
                 readOnly
               />
-            </div>
+            </div> */}
             <DialogFooter>
               <Button type="submit">Add Table</Button>
             </DialogFooter>
@@ -730,7 +764,7 @@ const getMenuItemsCategories = async () => {
         </select>
       </div>
 
-      <div>
+      {/* <div>
         <Label htmlFor="hotel">Hotel</Label>
         <Input
           id="hotel"
@@ -738,7 +772,7 @@ const getMenuItemsCategories = async () => {
           value={newMenu.hotel}
           readOnly
         />
-      </div>
+      </div> */}
 
       <DialogFooter>
         <Button type="submit">Add Item</Button>
@@ -934,7 +968,7 @@ const getMenuItemsCategories = async () => {
                 <Users className="w-5 h-5 text-green-600" />
               </div>
               <p className="text-2xl font-bold text-green-700">
-                {tableStats.available}
+                {dashboardSummary?.available_tables}
               </p>
             </div>
             <div className="flex items-center justify-between text-sm">
@@ -952,7 +986,7 @@ const getMenuItemsCategories = async () => {
                 <Menu className="w-5 h-5 text-primary" />
               </div>
               <p className="text-2xl font-bold text-primary">
-                {orders.length}
+                {dashboardSummary?.active_orders}
               </p>
             </div>
             <div className="flex items-center justify-between text-sm">
@@ -969,7 +1003,7 @@ const getMenuItemsCategories = async () => {
               <div className="p-2 bg-amber-100 rounded-full">
                 <Users className="w-5 h-5 text-amber-600" />
               </div>
-              <p className="text-2xl font-bold text-amber-700">$2,847</p>
+              <p className="text-2xl font-bold text-amber-700">${dashboardSummary?.todays_revenue}</p>
             </div>
             <div className="flex items-center justify-between text-sm">
               <p className="font-medium text-amber-600">Today's Revenue</p>
@@ -985,7 +1019,7 @@ const getMenuItemsCategories = async () => {
               <div className="p-2 bg-orange-100 rounded-full">
                 <Clock className="w-5 h-5 text-orange-600" />
               </div>
-              <p className="text-2xl font-bold text-orange-700">8 min</p>
+              <p className="text-2xl font-bold text-orange-700">{dashboardSummary?.avg_wait_time}</p>
             </div>
             <div className="flex items-center justify-between text-sm">
               <p className="font-medium text-orange-600">Avg Wait Time</p>

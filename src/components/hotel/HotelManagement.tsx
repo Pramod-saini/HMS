@@ -245,6 +245,9 @@
           body: JSON.stringify(status),
         });
 
+        const data = await response.json();
+        console.log(data);
+
           if(response.ok){ 
           setBookings(prev => prev.map(booking =>
         booking.id === bookingId ? { ...booking, status: "Completed" } : booking
@@ -521,7 +524,7 @@
           </Card>
         )}
 
-        {activeTab === "booking" && <RoomBooking />}
+        {activeTab === "booking" && <RoomBooking category={Roomcategories} />}
       </div>
     );
   };
