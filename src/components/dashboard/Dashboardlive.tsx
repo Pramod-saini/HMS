@@ -41,9 +41,9 @@ export default function Dashboardlive() { // Component name should be capitalize
   
   // Greeting Logic based on Time
   const getGreeting = (hour: number) => {
-    if (hour < 6) return "Good Morning";
-    if (hour < 12) return "Good Afternoon";
-    if (hour < 18) return "Good Evening";
+    if (hour < 9) return "Good Morning";
+    if (hour < 16) return "Good Afternoon";
+    if (hour < 20) return "Good Evening";
     return "Good Night";
   };
   
