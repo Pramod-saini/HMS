@@ -162,33 +162,39 @@ export const RoomBooking = () => {
   };
 
   const handleAddBooking = async () => {
+
+  const toYYYYMMDD = (d) => new Date(d).toISOString().split('T')[0];
+
+    
     if (!selectedRoom || !checkInDate || !checkOutDate) return alert("Please complete all booking details");
     const bookingDetails = {
-      check_out: checkOutDate,
-      check_in: checkInDate,
+
+     check_in: toYYYYMMDD(checkInDate),
+  check_out: toYYYYMMDD(checkOutDate),
       guests_count: guests,
-      status: selectedRoom?.status,
+      status: "confirmed",
       room: selectedRoom?.slug,
       hotel: selectedRoom?.hotel,
-      guests: { first_name: guestInfo?.firstName, last_name: guestInfo?.lastName, email: guestInfo?.email, phone: guestInfo?.phone, address: guestInfo?.address, gender: "", id_proof_type: guestInfo?.idType, id_proof_number: guestInfo?.idNumber, special_request: guestInfo?.specialRequests }
+      guests: [{ first_name: guestInfo?.firstName, last_name: guestInfo?.lastName, email: guestInfo?.email, phone: guestInfo?.phone, address: guestInfo?.address, gender: "", id_proof_type: guestInfo?.idType, id_proof_number: guestInfo?.idNumber, special_request: guestInfo?.specialRequests }]
     };
    console.log(bookingDetails);
     try {
-      // const accessToken = localStorage.getItem("accessToken");  
-      // const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/bookings/`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //     Authorization: `Bearer ${accessToken}`,
-      //   },
-      //   body: JSON.stringify(bookingDetails),
-      // });
-      // const data = await response.json();
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-      // alert("Booking Successful!");
-      // setBookingStep(4);
+      const accessToken = localStorage.getItem("accessToken");  
+      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/bookings/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(bookingDetails),
+      });
+      const data = await response.json();
+      console.log(data);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      alert("Booking Successful!");
+      setBookingStep(4);
 
     } catch (error) {
       console.error("Error creating booking:", error);
