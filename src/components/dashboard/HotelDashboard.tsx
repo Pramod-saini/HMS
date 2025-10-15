@@ -465,7 +465,7 @@ export const HotelDashboard = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BACKEND_URL}/api/hotels`,
+        `${import.meta.env.VITE_API_BACKEND_URL}/api/hotels/`,
         {
           method: "POST",
           headers: {
@@ -552,8 +552,8 @@ export const HotelDashboard = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">-- Select Status --</option>
-                  <option value="active">Active</option>
-                  <option value="in-active">Inactive</option>
+                  <option value="available">Active</option>
+                  <option value="closed">Inactive</option>
                 </select>
               </div>
             </div>
