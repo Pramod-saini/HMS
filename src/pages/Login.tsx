@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 // --- API Endpoint ---
-const API_URL = "http://192.168.1.9:8000/api/login/";
+const API_URL = `${import.meta.env.VITE_API_BACKEND_URL}/api/login/`;
 
 const Login = () => {
   const [email, setEmail] = useState("");

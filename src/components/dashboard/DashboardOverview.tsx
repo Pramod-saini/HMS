@@ -15,13 +15,18 @@ import {
   ArrowDown,
   Sparkles,
   BarChart3,
+  IndianRupee,
 } from "lucide-react";
 // import SystemAlerts from "../systemalerts/alerts";
-import { useNavigate } from "react-router-dom";
 import { BookingsList } from "../hotel/BookingsList";
 import Dashboardlive from "./Dashboardlive";
+import { useNavigate } from "react-router-dom";
 
-export const DashboardOverview = () => {
+interface DashboardOverviewProps {
+  setActiveView: (view: string) => void;
+}
+
+export const DashboardOverview = ({ setActiveView }: DashboardOverviewProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -29,14 +34,14 @@ export const DashboardOverview = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const kpiData = [
     {
       title: "Today's Revenue",
-      value: "$12,450",
+      value: "₹ 12,450",
       change: "+15.2%",
-      icon: DollarSign,
+      icon: IndianRupee ,
       color: "text-emerald-600",
       bgColor: "bg-gradient-to-br from-emerald-50 to-green-50",
       borderColor: "border-emerald-200/50",
@@ -103,9 +108,7 @@ export const DashboardOverview = () => {
       time: "15 mins ago",
       priority: "medium",
     },
-  ];
-
-  
+  ]; 
 
   //  navigation
 
@@ -183,7 +186,7 @@ export const DashboardOverview = () => {
             
               <Button
                 className="w-full justify-start h-10 lg:h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 text-sm lg:text-base font-semibold"
-                onClick={() => navigate("/hotelDashboard")}
+                onClick={() => setActiveView("hotelDashboard")}
               >
                 <Calendar className="w-5 h-5 lg:w-6 lg:h-6 mr-3 lg:mr-4" />
                 Add New Hotel
