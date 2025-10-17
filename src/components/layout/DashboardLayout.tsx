@@ -3,7 +3,34 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, LogOutIcon, SettingsIcon, Home, Calendar, Users, Menu, BarChart3, Bell, TrendingUp, UserCheck, Shirt, FileText, CreditCard, Calculator, Activity, Star, Send, Building, User, Package, Wrench, PartyPopper, Headphones, ChevronsLeft, ChevronsRight } from "lucide-react";
+import {
+  AlertCircle,
+  LogOutIcon,
+  SettingsIcon,
+  Home,
+  Calendar,
+  Users,
+  Menu,
+  BarChart3,
+  Bell,
+  TrendingUp,
+  UserCheck,
+  Shirt,
+  FileText,
+  CreditCard,
+  Calculator,
+  Activity,
+  Star,
+  Send,
+  Building,
+  User,
+  Package,
+  Wrench,
+  PartyPopper,
+  Headphones,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import Dashboardlive from "@/components/dashboard/Dashboardlive";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,7 +40,7 @@ interface DashboardLayoutProps {
   setActiveView: (view: string) => void;
 }
 
-const LOGOUT_API_URL = "http://127.0.0.1:8000/api/logout/";
+const LOGOUT_API_URL = ` ${import.meta.env.VITE_API_BACKEND_URL}/api/logout/;`
 
 export const DashboardLayout = ({
   children,
@@ -23,48 +50,55 @@ export const DashboardLayout = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   // --- Dynamic User State ---
-  const [userName, setUserName] = useState("Guest"); 
+  const [userName, setUserName] = useState("Guest");
   const { toast } = useToast();
 
   // --- Load User Name on Component Mount ---
   useEffect(() => {
-    const userString = localStorage.getItem('user');
+    const userString = localStorage.getItem("user");
     if (userString) {
-        try {
-            const userData = JSON.parse(userString);
-            // 'full_name' or 'fullName' key को प्राथमिकता दें, नहीं तो email का हिस्सा दिखाएँ।
-            const nameToDisplay = userData.full_name || userData.fullName || userData.email?.split('@')[0] || "User";
-            setUserName(nameToDisplay);
-        } catch (error) {
-            console.error("Error parsing user data from localStorage:", error);
-            setUserName("Error User");
-        }
+      try {
+        const userData = JSON.parse(userString);
+        // 'full_name' or 'fullName' key को प्राथमिकता दें, नहीं तो email का हिस्सा दिखाएँ।
+        const nameToDisplay =
+          userData.full_name ||
+          userData.fullName ||
+          userData.email?.split("@")[0] ||
+          "User";
+        setUserName(nameToDisplay);
+      } catch (error) {
+        console.error("Error parsing user data from localStorage:", error);
+        setUserName("Error User");
+      }
     }
-  }, []); 
+  }, []);
 
   // --- LOGOUT FUNCTION ---
   const handleLogout = async () => {
-    const refreshToken = localStorage.getItem('refreshToken');
-    
+    const refreshToken = localStorage.getItem("refreshToken");
+
     // 1. Local Tokens Removal (Security First)
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+
     // 2. API Call to Invalidate Token
     if (refreshToken) {
-        try {
-            await fetch(LOGOUT_API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ refresh: refreshToken }),
-            });
-            toast({ title: "Logout Successful", description: "You have been securely logged out.", });
-        } catch (error) {
-            // Network error
-        }
+      try {
+        await fetch(LOGOUT_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refresh: refreshToken }),
+        });
+        toast({
+          title: "Logout Successful",
+          description: "You have been securely logged out.",
+        });
+      } catch (error) {
+        // Network error
+      }
     }
-    
+
     // 3. Redirect to Login
     window.location.href = "/login";
   };
@@ -160,15 +194,15 @@ export const DashboardLayout = ({
             <p className="text-xs">Online</p>
           </div>
         </div>
-        
+
         {/* Mobile Logout Button */}
         <Button
-            variant="ghost"
-            className="w-full justify-start h-12 px-4 rounded-xl transition-all duration-300 text-left bg-red-600 hover:bg-red-700 text-white"
-            onClick={handleLogout} 
+          variant="ghost"
+          className="w-full justify-start h-12 px-4 rounded-xl transition-all duration-300 text-left bg-red-600 hover:bg-red-700 text-white"
+          onClick={handleLogout}
         >
-            <LogOutIcon className="w-5 h-5 mr-3" />
-            <span className="font-medium">Logout</span>
+          <LogOutIcon className="w-5 h-5 mr-3" />
+          <span className="font-medium">Logout</span>
         </Button>
       </div>
     </div>
@@ -198,12 +232,12 @@ export const DashboardLayout = ({
             <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="hidden md:block text-right">
                 {/* --- Welcome User Name Display (Desktop) --- */}
-                <p className="text-sm font-semibold text-white">
-                  Wel come
-                </p>
+                <p className="text-sm font-semibold text-white">Wel come</p>
                 <p className="text-xs text-blue-200">
                   {new Date().toLocaleDateString("en-US", {
-                    weekday: "short", month: "short", day: "numeric",
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
                   })}
                 </p>
               </div>
@@ -216,42 +250,46 @@ export const DashboardLayout = ({
                 </button>
                 {/* ... Alert Content ... */}
                 <div className="absolute right-0 mt-2 w-72 bg-white text-gray-800 rounded-xl shadow-lg opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0 translate-y-2 transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
-                    <div className="p-3 border-b font-semibold text-sm flex items-center space-x-2 text-amber-800">
-                        <AlertCircle className="w-4 h-4 text-amber-600" />
-                        <span> System Alerts ({alerts.length})</span>
-                    </div>
-                    <div className="max-h-60 overflow-y-auto">
-                        {alerts.map((alert) => (
-                        <div
-                            key={alert.id}
-                            className={`px-4 py-3 text-sm border-b last:border-none rounded-lg m-2 ${
-                            alert.type === "error"
-                                ? "bg-red-50 text-red-800"
-                                : alert.type === "warning"
-                                ? "bg-yellow-50 text-yellow-800"
-                                : "bg-blue-50 text-blue-800"
-                            }`}
-                        >
-                            {alert.message}
-                        </div>
-                        ))}
-                    </div>
+                  <div className="p-3 border-b font-semibold text-sm flex items-center space-x-2 text-amber-800">
+                    <AlertCircle className="w-4 h-4 text-amber-600" />
+                    <span> System Alerts ({alerts.length})</span>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto">
+                    {alerts.map((alert) => (
+                      <div
+                        key={alert.id}
+                        className={`px-4 py-3 text-sm border-b last:border-none rounded-lg m-2 ${
+                          alert.type === "error"
+                            ? "bg-red-50 text-red-800"
+                            : alert.type === "warning"
+                            ? "bg-yellow-50 text-yellow-800"
+                            : "bg-blue-50 text-blue-800"
+                        }`}
+                      >
+                        {alert.message}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               <div
                 className="relative"
                 onMouseEnter={(e) => {
-                  e.currentTarget.querySelector(".dropdown")?.classList.remove("invisible", "opacity-0");
+                  e.currentTarget
+                    .querySelector(".dropdown")
+                    ?.classList.remove("invisible", "opacity-0");
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.querySelector(".dropdown")?.classList.add("invisible", "opacity-0");
+                  e.currentTarget
+                    .querySelector(".dropdown")
+                    ?.classList.add("invisible", "opacity-0");
                 }}
               >
                 {/* Admin section */}
                 <div className="hidden sm:flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-2 cursor-pointer">
                   <User className="w-4 h-4 text-blue-200" />
-                  <span className="text-sm font-medium">{userName}</span> 
+                  <span className="text-sm font-medium">{userName}</span>
                   <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                 </div>
 
@@ -283,7 +321,7 @@ export const DashboardLayout = ({
                   </button>
                 </div>
               </div>
-              
+
               {/* Mobile Menu Toggle (unchanged) */}
               <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                 <SheetTrigger asChild>
@@ -327,29 +365,29 @@ export const DashboardLayout = ({
                 </Button>
 
                 {navigationItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeView === item.id;
-                    return (
-                        <Button
-                          key={item.id}
-                          variant="ghost"
-                          size="sm"
-                          className={`w-12 md:w-full h-12 px-2 rounded-lg flex items-center ${
-                            isActive
-                              ? "bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
-                              : "text-blue-100 hover:bg-white/10 hover:text-white"
-                          }`}
-                          onClick={() => setActiveView(item.id)}
-                          title={item.label}
-                        >
-                          <Icon
-                            className={`w-5 h-5 ${
-                              isActive ? "text-white" : "text-blue-300"
-                            }`}
-                          />
-                          {isExpanded && <span className="ml-2">{item.label}</span>}
-                        </Button>
-                      );
+                  const Icon = item.icon;
+                  const isActive = activeView === item.id;
+                  return (
+                    <Button
+                      key={item.id}
+                      variant="ghost"
+                      size="sm"
+                      className={`w-12 md:w-full h-12 px-2 rounded-lg flex items-center ${
+                        isActive
+                          ? "bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
+                          : "text-blue-100 hover:bg-white/10 hover:text-white"
+                      }`}
+                      onClick={() => setActiveView(item.id)}
+                      title={item.label}
+                    >
+                      <Icon
+                        className={`w-5 h-5 ${
+                          isActive ? "text-white" : "text-blue-300"
+                        }`}
+                      />
+                      {isExpanded && <span className="ml-2">{item.label}</span>}
+                    </Button>
+                  );
                 })}
               </nav>
             </ScrollArea>
@@ -391,15 +429,56 @@ export const DashboardLayout = ({
 // ... Helper functions (getPageTitle, getPageDescription)
 const getPageTitle = (activeView: string) => {
   const titles = {
-    dashboard: "Dashboard Overview", hotel: "Hotel Management", restaurant: "Restaurant Management", staff: "Staff Management", inventory: "Inventory Management", maintenance: "Maintenance & Housekeeping", events: "Event Management", "guest-services": "Guest Services", crm: "Customer Relationship Management", laundry: "Laundry Management", cms: "Content Management System", billing: "Billing & Invoicing", accounting: "Accounting & Finance", marketing: "Marketing Hub", analytics: "Analytics & Reports", activities: "Real-time Activities", reviews: "Reviews & Ratings", communications: "Communications Center", pos: "POS System", settings: "System Settings",
+    dashboard: "Dashboard Overview",
+    hotel: "Hotel Management",
+    restaurant: "Restaurant Management",
+    staff: "Staff Management",
+    inventory: "Inventory Management",
+    maintenance: "Maintenance & Housekeeping",
+    events: "Event Management",
+    "guest-services": "Guest Services",
+    crm: "Customer Relationship Management",
+    laundry: "Laundry Management",
+    cms: "Content Management System",
+    billing: "Billing & Invoicing",
+    accounting: "Accounting & Finance",
+    marketing: "Marketing Hub",
+    analytics: "Analytics & Reports",
+    activities: "Real-time Activities",
+    reviews: "Reviews & Ratings",
+    communications: "Communications Center",
+    pos: "POS System",
+    settings: "System Settings",
   };
   return titles[activeView as keyof typeof titles] || "Management";
 };
 
 const getPageDescription = (activeView: string) => {
   const descriptions = {
-    dashboard: "Overview of all hotel operations and key metrics", hotel: "Manage rooms, bookings, and hotel services", restaurant: "Handle dining reservations and restaurant operations", staff: "Manage employees, schedules, and performance", inventory: "Track stock levels, suppliers, and procurement", maintenance: "Facility maintenance and housekeeping operations", events: "Organize conferences, banquets, and special events", "guest-services": "Concierge services and guest experience", crm: "Manage customer relationships and profiles", laundry: "Track and manage laundry services", cms: "Manage website content and information", billing: "Handle invoicing and payment processing", accounting: "Financial management and reporting", marketing: "Online & offline marketing campaigns", analytics: "Business insights and data analysis", activities: "Monitor real-time system activities", reviews: "Reviews & Ratings", communications: "Email, WhatsApp, and SMS communications", pos: "Point of Sale system for restaurant orders", settings: "System configuration and preferences",
+    dashboard: "Overview of all hotel operations and key metrics",
+    hotel: "Manage rooms, bookings, and hotel services",
+    restaurant: "Handle dining reservations and restaurant operations",
+    staff: "Manage employees, schedules, and performance",
+    inventory: "Track stock levels, suppliers, and procurement",
+    maintenance: "Facility maintenance and housekeeping operations",
+    events: "Organize conferences, banquets, and special events",
+    "guest-services": "Concierge services and guest experience",
+    crm: "Manage customer relationships and profiles",
+    laundry: "Track and manage laundry services",
+    cms: "Manage website content and information",
+    billing: "Handle invoicing and payment processing",
+    accounting: "Financial management and reporting",
+    marketing: "Online & offline marketing campaigns",
+    analytics: "Business insights and data analysis",
+    activities: "Monitor real-time system activities",
+    reviews: "Reviews & Ratings",
+    communications: "Email, WhatsApp, and SMS communications",
+    pos: "Point of Sale system for restaurant orders",
+    settings: "System configuration and preferences",
   };
 
-  return descriptions[activeView as keyof typeof descriptions] || "Manage your operations";
+  return (
+    descriptions[activeView as keyof typeof descriptions] ||
+    "Manage your operations"
+  );
 };
