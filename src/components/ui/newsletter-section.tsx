@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { Mail, Send, Gift, Plane } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
+import React, { useState } from "react";
+import { Mail, Send, Gift, Plane } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 export const NewsletterSection = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -15,37 +15,38 @@ export const NewsletterSection = () => {
     if (!email) return;
 
     setIsSubmitting(true);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     toast.success("Welcome aboard! Check your email for exclusive offers.");
-    setEmail('');
+    setEmail("");
     setIsSubmitting(false);
   };
 
   return (
     <section className="py-20 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5">
       <div className="container mx-auto px-4">
-        <Card className="max-w-4xl mx-auto border-0 bg-gradient-to-br from-primary/10 to-secondary/10 backdrop-blur-sm">
-          <CardContent className="p-12">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <Card className="max-w-6xl mx-auto border bg-gradient-to-br from-primary/10 to-secondary/10 backdrop-blur-sm">
+          <CardContent className=" p-6 md:p-8 lg:p-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
               <div>
                 <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
                   <Gift className="h-4 w-4 mr-2" />
                   Exclusive Offers
                 </Badge>
-                
-                <h2 className="text-4xl font-bold mb-6">
+
+                <h2 className=" text-2xl md:text-3xl lg:text-4xl font-bold sm:mb-2 md:mb-6">
                   Never Miss a Great Deal
                 </h2>
-                
-                <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                  Join our newsletter and be the first to know about special offers, 
-                  new destinations, and insider travel tips. Plus, get 15% off your first booking!
+
+                <p className="md:text-lg text-muted-foreground mb-2 sm:mb-4 md:mb-6 leading-relaxed">
+                  Join our newsletter and be the first to know about special
+                  offers, new destinations, and insider travel tips. Plus, get
+                  15% off your first booking!
                 </p>
 
-                <div className="space-y-4">
+                <div className="space-y-2 md:space-y-4">
                   <div className="flex items-center gap-3 text-sm">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
                     <span>Exclusive member-only deals and discounts</span>
@@ -71,7 +72,9 @@ export const NewsletterSection = () => {
                     <Mail className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold mb-2">Get 15% Off</h3>
-                  <p className="text-muted-foreground">On your first booking when you subscribe</p>
+                  <p className="text-muted-foreground">
+                    On your first booking when you subscribe
+                  </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -86,9 +89,9 @@ export const NewsletterSection = () => {
                       required
                     />
                   </div>
-                  
-                  <Button 
-                    type="submit" 
+
+                  <Button
+                    type="submit"
                     className="w-full h-12 text-base font-semibold group"
                     disabled={isSubmitting}
                   >
@@ -104,7 +107,8 @@ export const NewsletterSection = () => {
                 </form>
 
                 <p className="text-xs text-muted-foreground mt-4 text-center">
-                  By subscribing, you agree to our Terms of Service and Privacy Policy
+                  By subscribing, you agree to our Terms of Service and Privacy
+                  Policy
                 </p>
               </div>
             </div>

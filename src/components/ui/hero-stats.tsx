@@ -1,21 +1,49 @@
-import React from 'react';
+import React from "react";
 
 const destinations = [
-  { name: 'Delhi', img: '/delhi.jpg', accommodations: '2,004 accommodations' },
-  { name: 'Mussoorie', img: '/Mussoorie.jpg', accommodations: '2,224 accommodations' },
-  { name: 'Udaipur', img: '/Udaipur.jpg', accommodations: '2,007 accommodations' },
-  { name: 'Ranikhet', img: '/Ranikhet3.jpg', accommodations: '2,000 accommodations' },
-  { name: 'Munnar', img: '/Munnar2.jpg', accommodations: '1,200 accommodations' },
-  { name: 'Ladakh', img: '/ladhak...jpg', accommodations: '500 accommodations' },
-  { name: 'Goa', img: '/goa...jpg', accommodations: '1,550 accommodations' },
-  { name: 'Auli', img: '/Auli9.jpg', accommodations: '1,800 accommodations' },
-  { name: 'Gulmarg', img: '/Gulmarg8.jpg', accommodations: '2,500 accommodations' },
-  { name: 'Darjeeling', img: '/Darjeeling7.jpg', accommodations: '2,300 accommodations' },
+  { name: "Delhi", img: "/delhi.jpg", accommodations: "2,004 accommodations" },
+  {
+    name: "Mussoorie",
+    img: "/Mussoorie.jpg",
+    accommodations: "2,224 accommodations",
+  },
+  {
+    name: "Udaipur",
+    img: "/Udaipur.jpg",
+    accommodations: "2,007 accommodations",
+  },
+  {
+    name: "Ranikhet",
+    img: "/Ranikhet3.jpg",
+    accommodations: "2,000 accommodations",
+  },
+  {
+    name: "Munnar",
+    img: "/Munnar2.jpg",
+    accommodations: "1,200 accommodations",
+  },
+  {
+    name: "Ladakh",
+    img: "/ladhak...jpg",
+    accommodations: "500 accommodations",
+  },
+  { name: "Goa", img: "/goa...jpg", accommodations: "1,550 accommodations" },
+  { name: "Auli", img: "/Auli9.jpg", accommodations: "1,800 accommodations" },
+  {
+    name: "Gulmarg",
+    img: "/Gulmarg8.jpg",
+    accommodations: "2,500 accommodations",
+  },
+  {
+    name: "Darjeeling",
+    img: "/Darjeeling7.jpg",
+    accommodations: "2,300 accommodations",
+  },
 ];
 
 export const HeroStats = () => {
   return (
-    <section className="w-full py-16">
+    <section className="w-full py-8 md:py-16  ">
       <div className="max-w-7xl mx-auto px-4">
         {/* Title */}
         <h3 className="text-3xl md:text-4xl font-bold text-center mb-2 text-gray-900">
@@ -34,7 +62,7 @@ export const HeroStats = () => {
         </div>
 
         {/* Grid Layout */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-10 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-4">
           {destinations.map((dest) => (
             <div
               key={dest.name}
