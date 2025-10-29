@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 // --- API Endpoint ---
-const API_URL = "http://192.168.1.9:8000/api/login/";
+const API_URL = "http://192.168.1.17:8000/api/login/";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -21,7 +21,7 @@ const Login = () => {
 
     try {
       // 1. API Call
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/login/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
