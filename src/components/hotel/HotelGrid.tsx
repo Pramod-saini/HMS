@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Hotel, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface Hotel {
@@ -27,15 +27,10 @@ interface Hotel {
   city: string;
 }
 
-interface HotelCategory {
-  name: string;
-  price_per_night: number;
-}
-
 interface HotelGridProps {
   hotels: Hotel[];
   filter: (value: string, slug: string) => void;
-  // onStatusChange: (hotelId: string, newStatus: string) => void;
+  onStatusChange: (hotelId: string, newStatus: string) => void;
   getStatusColor: (status: string) => string;
   onDelete: (slug: string) => void;
   onEdit: (hotel: Hotel) => void;
@@ -43,66 +38,54 @@ interface HotelGridProps {
 
 export const HotelGrid = ({
   hotels,
-  // onStatusChange,
+  onStatusChange,
   getStatusColor,
   filter,
   onDelete,
   onEdit,
 }: HotelGridProps) => {
-  // const [Hotelstatus, setHotelstatus] = useState<HotelCategory[]>([]);
   const [localHotels, setLocalHotels] = useState<Hotel[]>(hotels);
-
-  // const handleGetHotelstatus = async () => {
-  //   const accessToken = localStorage.getItem("accessToken");
-  //   try {
-  //     const response = await fetch(
-  //       `${import.meta.env.VITE_API_BACKEND_URL}/api/hotels/`,
-  //       {
-  //         method: "GET",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${accessToken}`,
-  //         },
-  //       }
-  //     );
-  //     const data = await response.json();
-  //     if (response.ok) setHotelstatus(data);
-  //   } catch (error) {
-  //     console.error("Error in fetching Hotel status:", error);
-  //   }
-  // };
 
   useEffect(() => {
     // handleGetHotelstatus();
-    setLocalHotels(hotels)
+    setLocalHotels(hotels);
   }, [hotels]);
 
-  // const handleStatusChange = (hotelId: string, newStatus: string) => {
-  //   const updatedHotels = localHotels.map((hotel) => {
-  //     if (hotel.id === hotelId) {
-  //       return { ...hotel, status: newStatus };
-  //     }
-  //     return hotel;
-  //   });
-  //   setLocalHotels(updatedHotels);
-  //   onStatusChange(hotelId, newStatus);
-  // };
+  const handleStatusChange = (hotelId: string, newStatus: string) => {
+    const updatedHotels = localHotels.map((hotel) => {
+      if (hotel.id === hotelId) {
+        return { ...hotel, status: newStatus };
+      }
+      return hotel;
+    });
+    setLocalHotels(updatedHotels);
+    onStatusChange(hotelId, newStatus);
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {localHotels.map((hotel) => {
-        // const matchedStatus = Hotelstatus.find(
-        //   (cat) => cat.name === hotel.status
-        // );
-
         return (
           <div
             key={hotel.id}
             className="p-4 border rounded-lg hover:shadow-md transition-shadow"
           >
+            <div
+              className="relative h-48 w-full rounded-lg mb-1 bg-cover bg-center"
+              style={{ backgroundImage: `url(${hotel.cover_image})` }}
+            >
+              <img
+                src={hotel.logo}
+                alt="Hotel Logo"
+                className="absolute top-2 right-2  h-6  object-cover   shadow-md"
+              />
+            </div>
+
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-lg">{hotel.name}</h3>
-              <Badge className={getStatusColor(hotel.status)}>
+              <Badge
+                className={`${getStatusColor(hotel.status)} hover:text-white`}
+              >
                 {hotel.status}
               </Badge>
             </div>
@@ -127,9 +110,12 @@ export const HotelGrid = ({
               <p className="text-sm text-gray-600">
                 Email: <span className="font-medium">{hotel.email}</span>
               </p>
-              <p className="text-sm text-gray-600">
-                Description: <span className="font-medium">{hotel.description}</span>
-              </p>
+              {hotel.description && (
+                <p className="text-sm text-gray-600">
+                  Description:{" "}
+                  <span className="font-medium">{hotel.description}</span>
+                </p>
+              )}
             </div>
 
             <div className="mt-3 pt-3 border-t flex space-x-2">
@@ -150,10 +136,9 @@ export const HotelGrid = ({
               </Button>
 
               <Select
-                // onValueChange={(value) => {
-                //   // onStatusChange(hotel.id, value);
-                //   filter(value, hotel.slug);
-                // }}
+                onValueChange={(value) => {
+                  handleStatusChange(hotel.slug, value);
+                }}
               >
                 <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Change Status" />
@@ -161,6 +146,7 @@ export const HotelGrid = ({
                 <SelectContent>
                   <SelectItem value="available">Available</SelectItem>
                   <SelectItem value="closed">Closed</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
                 </SelectContent>
               </Select>
             </div>

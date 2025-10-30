@@ -1,397 +1,3 @@
-// import { useState } from "react";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import { Button } from "@/components/ui/button";
-// import { Calendar, Plus, Search } from "lucide-react";
-// import { Input } from "@/components/ui/input";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select";
-// import { getStatusColor } from "../hotel/utils";
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogHeader,
-//   DialogTitle,
-//   DialogFooter,
-// } from "@/components/ui/dialog";
-// import { Label } from "@/components/ui/label";
-// import { HotelGrid } from "../hotel/HotelGrid";
-
-// export const HotelDashboard = () => {
-//   const [activeTab, setActiveTab] = useState("rooms");
-//   const [showAddHotel, setShowAddHotel] = useState(false);
-//   const [filterStatus, setFilterStatus] = useState("all");
-//   const [searchTerm, setSearchTerm] = useState("");
-
-  
-//   const Hotel = [
-//     {
-//       id: "9bd272d4-482c-4ca1-b830-f3d1882a0c37",
-//       name: "ocean-view-resort",
-//       slug: "ocean-view-resort",
-//       description: " this is desc",
-//       address: "Student",
-//       city: "lucknow",
-//       state: "Uttar Pradesh",
-//       country: "India",
-//       pincode: 302045,
-//       contact_number: "1234567890",
-//       email: "ak@gmail.com",
-//       logo: null,
-//       cover_image: null,
-//       created_at: "2025-10-11T06:17:41.439647Z",
-//       updated_at: "2025-10-11T06:17:41.439729Z",
-//       status: "active",
-//     },
-//     {
-//       id: "b78c8aee-2344-485b-9ba7-ea1f7269168b",
-//       name: "Taj-Mahal-Hotel",
-//       slug: "taj-mahal-hotel",
-//       description: " this is desc",
-//       address: "lucknow",
-//       city: "lucknow",
-//       state: "Uttar Pradesh",
-//       country: "India",
-//       pincode: 302045,
-//       contact_number: "1234567890",
-//       email: "ak@gmail.com",
-//       logo: null,
-//       cover_image: null,
-//       created_at: "2025-10-11T06:18:39.268847Z",
-//       updated_at: "2025-10-11T06:18:39.268881Z",
-//       status: "active",
-//     },
-//     {
-//       id: "a2a7dd13-9881-4f74-8d9a-67caded55df4",
-//       name: "Mumbai-Hotel",
-//       slug: "mumbai-hotel",
-//       description: " this is desc",
-//       address: "mumbai",
-//       city: "mumbai",
-//       state: "mumbai",
-//       country: "India",
-//       pincode: 302045,
-//       contact_number: "1234567890",
-//       email: "kamal@gmail.com",
-//       logo: null,
-//       cover_image: null,
-//       created_at: "2025-10-11T06:22:38.406240Z",
-//       updated_at: "2025-10-11T06:22:38.406281Z",
-//       status: "in-active",
-//     },
-//   ];
-
-//   const accessToken = localStorage.getItem("accessToken");
-
-//   const handleAddHotel = async (e) => {
-//     e.preventDefault();
-
-//     const formData = new FormData(e.target);
-//     const data = Object.fromEntries(formData.entries());
-
-//     try {
-//       const response = await fetch(
-//         `${import.meta.env.VITE_API_BACKEND_URL}/api/hotels`,
-//         {
-//           method: "POST",
-//           headers: {
-//             "Content-Type": "application/json",
-//             Authorization: `Bearer ${accessToken}`,
-//           },
-//           body: JSON.stringify(data),
-//         }
-//       );
-
-//       if (!response.ok) throw new Error("Failed to add hotel");
-//       const result = await response.json();
-
-//       console.log("Hotel added:", result);
-//       setShowAddHotel(false);
-//     } catch (error) {
-//       console.error("Error:", error);
-//     }
-//   };
-
-//   const filteredHotels = Hotel.filter((hotel) => {
-//     const searchTermLower = searchTerm.toLowerCase();
-//     const matchesSearch =
-//       hotel.name.toLowerCase().includes(searchTermLower) ||
-//       hotel.city.toLowerCase().includes(searchTermLower) ||
-//       hotel.state.toLowerCase().includes(searchTermLower) ||
-//       hotel.country.toLowerCase().includes(searchTermLower);
-
-//     const matchesFilter =
-//       filterStatus === "all" || hotel.status.toLowerCase() === filterStatus;
-
-//     return matchesSearch && matchesFilter;
-//   });
-
-//   const dashboardData = {
-//     total_hotels: Hotel.length,
-//     active_hotels: Hotel.filter((htl) => htl.status == "active").length,
-//     inactive_hotels: Hotel.filter((htl) => htl.status == "in-active").length,
-//   };
-//   return (
-//     <div className="space-y-6 px-2 sm:px-4 md:px-8 max-w-[1400px] mx-auto">
-//       {/* Header */}
-//       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-//         <div>
-//           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-//             Hotel Dashboard
-//           </h2>
-//           <p className="text-gray-600 text-sm sm:text-base">
-//             A quick overview of your hotel's status.
-//           </p>
-//         </div>
-//         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 ml-0 md:ml-auto">
-//           <Button
-//             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 w-full sm:w-auto"
-//             onClick={() => setShowAddHotel(true)}
-//           >
-//             <Plus className="w-4 h-4 mr-2" />
-//             Add New Hotel
-//           </Button>
-//         </div>
-//       </div>
-//       {/* Add Room Dialog */}
-//       {/* <Dialog open={showAddHotel} onOpenChange={setShowAddHotel}>
-//         <DialogContent>
-//           <DialogHeader>
-//             <DialogTitle>Add New Hotel</DialogTitle>
-//           </DialogHeader>
-//           <form className="space-y-4">
-//             <div>
-//               <Label htmlFor="id">Room ID</Label>
-//               <Input id="id" required />
-//             </div>
-//             <div>
-//               <Label htmlFor="type">Type</Label>
-//               <Input id="type" required />
-//             </div>
-//             <div>
-//               <Label htmlFor="room_category">Category</Label>
-//               <select
-//                 id="room_category"
-//                 required
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-//               >
-//                 <option value="">-- Select Category --</option>
-//                 <option value="Standard">Standard</option>
-//                 <option value="Deluxe">Deluxe</option>
-//                 <option value="Suite">Suite</option>
-//               </select>
-//             </div>
-//             <div>
-//               <Label htmlFor="price">Price</Label>
-//               <Input id="price" type="number" required />
-//             </div>
-//             <div>
-//               <Label htmlFor="floor">Floor</Label>
-//               <Input id="floor" type="number" required />
-//             </div>
-//             <DialogFooter>
-//               <Button type="submit">Add Hotel</Button>
-//             </DialogFooter>
-//           </form>
-//         </DialogContent>
-//       </Dialog> */}
-
-//       <Dialog open={showAddHotel} onOpenChange={setShowAddHotel}>
-//         <DialogContent className="max-w-[90vw] sm:max-w-[600px] max-h-[90vh] overflow-y-auto no-scrollbar">
-//           <DialogHeader>
-//             <DialogTitle>Add New Hotel</DialogTitle>
-//           </DialogHeader>
-//           <form className="grid gap-4 py-4" onSubmit={handleAddHotel}>
-//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-//               <div>
-//                 <Label htmlFor="name">Hotel Name</Label>
-//                 <Input id="name" name="name" required />
-//               </div>
-//               <div>
-//               <Label htmlFor="status">Status</Label>
-//               <select
-//                 id="status"
-//                 name="status"
-//                 required
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-//               >
-//                 <option value="">-- Select Status --</option>
-//                 <option value="active">Active</option>
-//                 <option value="in-active">Inactive</option>
-//               </select>
-//             </div>
-//             </div>
-
-//             <div>
-//               <Label htmlFor="description">Description</Label>
-//               <textarea
-//                 id="description"
-//                 name="description"
-//                 required
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-//               />
-//             </div>
-
-//             <div>
-//               <Label htmlFor="address">Address</Label>
-//               <Input id="address" name="address" required />
-//             </div>
-
-//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-//               <div>
-//                 <Label htmlFor="city">City</Label>
-//                 <Input id="city" name="city" required />
-//               </div>
-//               <div>
-//                 <Label htmlFor="state">State</Label>
-//                 <Input id="state" name="state" required />
-//               </div>
-//             </div>
-
-//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-//               <div>
-//                 <Label htmlFor="country">Country</Label>
-//                 <Input
-//                   id="country"
-//                   name="country"
-//                   required
-//                   defaultValue="India"
-//                 />
-//               </div>
-//               <div>
-//                 <Label htmlFor="pincode">Pincode</Label>
-//                 <Input id="pincode" name="pincode" type="number" required />
-//               </div>
-//             </div>
-
-//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-//               <div>
-//                 <Label htmlFor="contact_number">Contact Number</Label>
-//                 <Input id="contact_number" name="contact_number" required />
-//               </div>
-//               <div>
-//                 <Label htmlFor="email">Email</Label>
-//                 <Input id="email" name="email" type="email" required />
-//               </div>
-//             </div>
-
-            
-
-//             <DialogFooter>
-//               <Button type="submit">Add Hotel</Button>
-//             </DialogFooter>
-//           </form>
-//         </DialogContent>
-//       </Dialog>
-
-//       {/* Quick Stats */}
-//       <div className="mb-2 gap-3 grid grid-cols-1 md:grid-cols-3  ">
-//         <Card>
-//           <CardContent className="p-4">
-//             <div className="flex items-center space-x-2 gap-4">
-//               <div className="p-2 bg-green-100 rounded-lg">
-//                 <Calendar className="w-4 h-4 text-green-600" />
-//               </div>
-//               <div>
-//                 <p className="text-sm text-gray-600">Total Hotels</p>
-
-//                 <p className="text-xl font-bold text-green-600">
-//                   {dashboardData.total_hotels}{" "}
-//                 </p>
-//               </div>
-//             </div>
-//           </CardContent>
-//         </Card>
-//         <Card>
-//           <CardContent className="p-4">
-//             <div className="flex items-center space-x-2 gap-4">
-//               <div className="p-2 bg-green-100 rounded-lg">
-//                 <Calendar className="w-4 h-4 text-green-600" />
-//               </div>
-//               <div>
-//                 <p className="text-sm text-gray-600">Active</p>
-
-//                 <p className="text-xl font-bold text-green-600">
-//                   {dashboardData.active_hotels}{" "}
-//                 </p>
-//               </div>
-//             </div>
-//           </CardContent>
-//         </Card>
-//         <Card>
-//           <CardContent className="p-4">
-//             <div className="flex items-center space-x-2 gap-4">
-//               <div className="p-2 bg-yellow-100 rounded-lg">
-//                 <Calendar className="w-4 h-4 text-yellow-600" />
-//               </div>
-//               <div>
-//                 <p className="text-sm text-gray-600">In-Active</p>
-//                 <p className="text-xl font-bold text-yellow-600">
-//                   {dashboardData.inactive_hotels}{" "}
-//                 </p>
-//               </div>
-//             </div>
-//           </CardContent>
-//         </Card>
-//       </div>
-
-//       <Card>
-//         <CardHeader>
-//           <div
-//             className="flex flex-col md:flex-row md:items-center                                 
-//       md:justify-between gap-4"
-//           >
-//             <CardTitle className="text-lg sm:text-xl">
-//               Hotel Status Overview
-//             </CardTitle>
-//             <div
-//               className="flex flex-col sm:flex-row items-stretch                                 
-//       sm:items-center gap-2 sm:gap-2"
-//             >
-//               <Select value={filterStatus} onValueChange={setFilterStatus}>
-//                 <SelectTrigger className="w-full sm:w-40">
-//                   <SelectValue placeholder="All Hotels" />
-//                 </SelectTrigger>
-//                 <SelectContent>
-//                   <SelectItem value="all">All Hotels</SelectItem>
-//                   <SelectItem value="active">Active</SelectItem>
-//                   <SelectItem value="in-active">In-Active</SelectItem>
-//                 </SelectContent>
-//               </Select>
-//               <div className="relative w-full sm:w-64">
-//                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-40 " />
-//                 <Input
-//                   placeholder="Search Hotels..."
-//                   className="pl-9 w-full"
-//                   value={searchTerm}
-//                   onChange={(e) => setSearchTerm(e.target.value)}
-//                 />
-//               </div>
-//             </div>
-//           </div>
-//         </CardHeader>
-//         <CardContent>
-//           <HotelGrid
-//             hotels={filteredHotels}
-//             filter={() => {}}
-//             onStatusChange={() => {}}
-//             getStatusColor={getStatusColor}
-//             onDelete={() => {}}
-//             onEdit={() => {}}
-//           />
-//         </CardContent>
-//       </Card>
-//     </div>
-//   );
-// };
-
-// export default HotelDashboard;
-
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -420,6 +26,8 @@ export const HotelDashboard = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddHotel, setShowAddHotel] = useState(false);
+  const [showEditHotel, setShowEditHotel] = useState(false);
+  const [editingHotel, setEditingHotel] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -431,7 +39,7 @@ export const HotelDashboard = () => {
     setError(null);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BACKEND_URL}/api/hotels`,
+        `${import.meta.env.VITE_API_BACKEND_URL}/api/hotels/`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -461,29 +69,112 @@ export const HotelDashboard = () => {
     e.preventDefault();
 
     const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BACKEND_URL}/api/hotels`,
+        `${import.meta.env.VITE_API_BACKEND_URL}/api/hotels/`,
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
-          body: JSON.stringify(data),
+          body: formData,
         }
       );
+      const result = await response.json();
 
-      if (!response.ok) throw new Error("Failed to add hotel");
-
-      await response.json();
+      if (!response.ok) console.error("Failed to add hotel", result);
 
       setShowAddHotel(false);
       fetchHotels(); // ✅ Refresh list after adding
     } catch (error) {
       console.error("Error:", error);
+    }
+  };
+
+  // ✅ Update hotel
+  const handleUpdateHotel = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingHotel) return;
+
+    const formData = new FormData(e.currentTarget);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BACKEND_URL}/api/hotels/${
+          editingHotel.slug
+        }/`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to update hotel");
+
+      await response.json();
+
+      setShowEditHotel(false);
+      setEditingHotel(null);
+      fetchHotels(); // Refresh list after updating
+    } catch (err) {
+      console.error("Error updating hotel:", err);
+    }
+  };
+
+  const handleStatusChange = async (hotelId: string, status: string) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BACKEND_URL}/api/hotels/${hotelId}/`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ status }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update hotel status");
+      }
+
+      fetchHotels(); // Refresh hotels list
+    } catch (err) {
+      console.error("Error updating hotel status:", err);
+      setError(err.message);
+    }
+  };
+
+  const handleEditClick = (hotel) => {
+    setEditingHotel(hotel);
+    setShowEditHotel(true);
+  };
+
+  const handleDelete = async (slug: string) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BACKEND_URL}/api/hotels/${slug}/`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete hotel");
+      }
+
+      fetchHotels(); // Refresh hotels list
+    } catch (err) {
+      console.error("Error deleting hotel:", err);
+      setError(err.message);
     }
   };
 
@@ -506,6 +197,7 @@ export const HotelDashboard = () => {
     total_hotels: hotels.length,
     active_hotels: hotels.filter((h) => h.status === "available").length,
     inactive_hotels: hotels.filter((h) => h.status === "closed").length,
+    maintenance: hotels.filter((h) => h.status === "maintenance").length,
   };
 
   return (
@@ -552,8 +244,9 @@ export const HotelDashboard = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">-- Select Status --</option>
-                  <option value="active">Active</option>
-                  <option value="in-active">Inactive</option>
+                  <option value="available">Active</option>
+                  <option value="closed">Inactive</option>
+                  <option value="maintenance">Maintenance</option>
                 </select>
               </div>
             </div>
@@ -611,15 +304,166 @@ export const HotelDashboard = () => {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="cover_image">Hotel Image</Label>
+                <Input id="cover_image" name="cover_image" type="file" />
+              </div>
+              <div>
+                <Label htmlFor="logo">Logo Image</Label>
+                <Input id="logo" name="logo" type="file" />
+              </div>
+            </div>
+
+            <DialogFooter className=" sm:items-center sm:justify-center">
+              <Button type="submit" className="px-6">
+                Add Hotel
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Hotel Dialog */}
+      <Dialog open={showEditHotel} onOpenChange={setShowEditHotel}>
+        <DialogContent className="max-w-[90vw] sm:max-w-[600px] max-h-[90vh] overflow-y-auto no-scrollbar">
+          <DialogHeader>
+            <DialogTitle>Edit Hotel</DialogTitle>
+          </DialogHeader>
+          <form className="grid gap-4 py-4" onSubmit={handleUpdateHotel}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">Hotel Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  required
+                  defaultValue={editingHotel?.name}
+                />
+              </div>
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <select
+                  id="status"
+                  name="status"
+                  // required
+                  defaultValue={editingHotel?.status}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">-- Select Status --</option>
+                  <option value="available">Active</option>
+                  <option value="closed">Inactive</option>
+                  <option value="maintenance">Maintenance</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <textarea
+                id="description"
+                name="description"
+                required
+                defaultValue={editingHotel?.description}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="address">Address</Label>
+              <Input
+                id="address"
+                name="address"
+                required
+                defaultValue={editingHotel?.address}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="city">City</Label>
+                <Input
+                  id="city"
+                  name="city"
+                  required
+                  defaultValue={editingHotel?.city}
+                />
+              </div>
+              <div>
+                <Label htmlFor="state">State</Label>
+                <Input
+                  id="state"
+                  name="state"
+                  required
+                  defaultValue={editingHotel?.state}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="country">Country</Label>
+                <Input
+                  id="country"
+                  name="country"
+                  required
+                  defaultValue={editingHotel?.country}
+                />
+              </div>
+              <div>
+                <Label htmlFor="pincode">Pincode</Label>
+                <Input
+                  id="pincode"
+                  name="pincode"
+                  type="number"
+                  required
+                  defaultValue={editingHotel?.pincode}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="contact_number">Contact Number</Label>
+                <Input
+                  id="contact_number"
+                  name="contact_number"
+                  required
+                  defaultValue={editingHotel?.contact_number}
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  defaultValue={editingHotel?.email}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="cover_image">Hotel Image</Label>
+                <Input id="cover_image" name="cover_image" type="file" />
+              </div>
+              <div>
+                <Label htmlFor="logo">Logo Image</Label>
+                <Input id="logo" name="logo" type="file" />
+              </div>
+            </div>
+
             <DialogFooter>
-              <Button type="submit">Add Hotel</Button>
+              <Button type="submit">Save Changes</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
       {/* Quick Stats */}
-      <div className="mb-2 gap-3 grid grid-cols-1 md:grid-cols-3">
+      <div className="mb-2 gap-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
@@ -656,12 +500,27 @@ export const HotelDashboard = () => {
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <div className="p-2 bg-yellow-100 rounded-lg">
-                <Calendar className="w-4 h-4 text-yellow-600" />
+                <Calendar className="w-4 h-4 text-yellow-500" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">In-Active</p>
-                <p className="text-xl font-bold text-yellow-600">
+                <p className="text-sm text-gray-600">Closed</p>
+                <p className="text-xl font-bold text-yellow-500">
                   {dashboardData.inactive_hotels}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <Calendar className="w-4 h-4 text-red-500" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Maintenance</p>
+                <p className="text-xl font-bold text-red-500">
+                  {dashboardData.maintenance}
                 </p>
               </div>
             </div>
@@ -709,8 +568,12 @@ export const HotelDashboard = () => {
             <HotelGrid
               hotels={filteredHotels}
               getStatusColor={getStatusColor}
-              onDelete={() => {}}
-              onEdit={() => {}}
+              onDelete={handleDelete}
+              onEdit={handleEditClick}
+              onStatusChange={handleStatusChange}
+              filter={function (value: string, slug: string): void {
+                throw new Error("Function not implemented.");
+              }}
             />
           )}
         </CardContent>

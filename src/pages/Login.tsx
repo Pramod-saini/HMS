@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
-// --- API Endpoint ---
-const API_URL = "http://192.168.1.17:8000/api/login/";
 
 const Login = () => {
   const [email, setEmail] = useState("");

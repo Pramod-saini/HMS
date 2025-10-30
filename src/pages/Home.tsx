@@ -481,7 +481,7 @@ const Home = () => {
       <HeroSection onSearch={handleSearch} />
 
       {/* Stats Section */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-8 md:py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <HeroStats />
         </div>
@@ -562,41 +562,40 @@ const Home = () => {
         </div>
       </main>
 
-
       {/* App Showcase with AI Features */}
-      <section className="py-20 px-8 bg-gradient-to-br from-primary/5 to-accent/5 relative overflow-hidden">
+      <section className="py-10 md:py-20 px-8 bg-gradient-to-br from-primary/5 to-accent/5 relative overflow-hidden border-2">
         <div className="absolute inset-0 bg-gradient-to-r from-background/50 to-transparent" />
         <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-16 animate-fade-up">
+          <div className="text-center mb-8 md:mb-16 animate-fade-up">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
               <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
               AI-Enhanced Experience
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="text-3xl md:text-5xl font-bold mb-3 md:mb-6">
               Experience the Future of Travel Planning
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="md:text-xl text-muted-foreground max-w-3xl mx-auto">
               Our AI chatbot provides instant recommendations, smart search
               capabilities, and personalized suggestions to make your journey
               unforgettable
             </p>
           </div>
         </div>
-         <AppShowcase />
+        <AppShowcase />
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-gradient-to-br from-muted/20 to-background">
+      <section className=" py-8 md:py-20 bg-gradient-to-br from-muted/20 to-background">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <div className="text-center mb-8 md:mb-16">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
               <Users className="h-4 w-4 mr-2" />
               Customer Stories
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-6">
               What Our Customers Say
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
               Join thousands of satisfied customers who have found their perfect
               dining and accommodation experiences through our platform.
             </p>
@@ -608,7 +607,7 @@ const Home = () => {
                 key={index}
                 className="border-2 hover:border-primary/20 transition-colors"
               >
-                <CardContent className="p-8">
+                <CardContent className=" p-4 sm:p-8">
                   <div className="flex mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <Star
@@ -617,7 +616,7 @@ const Home = () => {
                       />
                     ))}
                   </div>
-                  <blockquote className="text-lg text-muted-foreground mb-6 leading-relaxed">
+                  <blockquote className="sm:text-lg text-muted-foreground mb-6 leading-relaxed">
                     "{testimonial.text}"
                   </blockquote>
                   <div className="flex items-center gap-4">
@@ -648,7 +647,7 @@ const Home = () => {
       {/* Footer */}
       <footer className="bg-card border-t py-16">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
@@ -769,7 +768,11 @@ const Home = () => {
           <div className="border-t pt-8 text-center text-muted-foreground">
             <p>
               &copy; 2025 Hotel Management System. All rights reserved. Made
-              with <span className="font-semibold text-orange-500 underline hover:text-blue-600">ATS GLOBAL TECH</span> .
+              with{" "}
+              <span className="font-semibold text-orange-500 underline hover:text-blue-600">
+                ATS GLOBAL TECH
+              </span>{" "}
+              .
             </p>
           </div>
         </div>

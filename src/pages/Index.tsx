@@ -26,6 +26,7 @@ import WhatsAppMarketing from "@/components/marketing/WhatsAppMarketing";
 import { QuotationMaker } from "@/components/quotations/QuotationMaker";
 import { FinanceManagement } from "@/components/finance/FinanceManagement";
 import { ReportingModule } from "@/components/reporting/ReportingModule";
+import HotelDashboard from "@/components/dashboard/HotelDashboard";
 
 const Index = () => {
   const [activeView, setActiveView] = useState("dashboard");
@@ -33,7 +34,7 @@ const Index = () => {
   const renderActiveView = () => {
     switch (activeView) {
       case "dashboard":
-        return <DashboardOverview />;
+        return <DashboardOverview setActiveView={setActiveView} />;
       case "hotel":
         return <HotelManagement />;
       case "restaurant":
@@ -80,8 +81,10 @@ const Index = () => {
         return <ReportingModule />;
       case "settings":
         return <Settings />;
+      case "hotelDashboard":
+        return <HotelDashboard />;
       default:
-        return <DashboardOverview />;
+        return <DashboardOverview setActiveView={setActiveView} />;
     }
   };
 

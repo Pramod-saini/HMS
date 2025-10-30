@@ -90,8 +90,8 @@ export const StaffManagement = () => {
   };
 
   // Save staff member data
- 
-  const [editScore, setEditScore] = useState(0);
+
+  // const [editScore, setEditScore] = useState(0);
 
   const [newStaff, setNewStaff] = useState<NewStaff>({
     fullname: "",
@@ -125,20 +125,20 @@ export const StaffManagement = () => {
     // State data clear nahi hoga kyunki woh newStaff/staffDetails mein stored hai
   };
 
-  const [isShiftDialogOpen, setIsShiftDialogOpen] = useState(false);
-  const [currentMemberForShift, setCurrentMemberForShift] = useState(null);
-  const [shiftTimes, setShiftTimes] = useState({
-    shift_start: '09:00',
-    shift_end: '18:00'
-  });
+  // const [isShiftDialogOpen, setIsShiftDialogOpen] = useState(false);
+  // const [currentMemberForShift, setCurrentMemberForShift] = useState(null);
+  // const [shiftTimes, setShiftTimes] = useState({
+  //   shift_start: '09:00',
+  //   shift_end: '18:00'
+  // });
 
 
 
-  const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
-  const [currentStaffToTimeIn, setCurrentStaffToTimeIn] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(
-    new Date().toTimeString().split(' ')[0].substring(0, 5)
-  );
+  // const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
+  // const [currentStaffToTimeIn, setCurrentStaffToTimeIn] = useState(null);
+  // const [selectedTime, setSelectedTime] = useState(
+  //   new Date().toTimeString().split(' ')[0].substring(0, 5)
+  // );
 
   const [selectedDate, setSelectedDate] = useState(
     () => {
@@ -148,38 +148,38 @@ export const StaffManagement = () => {
     }
   );
 
-  const [isCheckOutDialogOpen, setIsCheckOutDialogOpen] = useState(false);
-  const [currentStaffToTimeOut, setCurrentStaffToTimeOut] = useState(null);
-  const [selectedCheckOutTime, setSelectedCheckOutTime] = useState(
-    new Date().toTimeString().split(' ')[0].substring(0, 5) // (HH:MM)
-  );
+  // const [isCheckOutDialogOpen, setIsCheckOutDialogOpen] = useState(false);
+  // const [currentStaffToTimeOut, setCurrentStaffToTimeOut] = useState(null);
+  // const [selectedCheckOutTime, setSelectedCheckOutTime] = useState(
+  //   new Date().toTimeString().split(' ')[0].substring(0, 5) // (HH:MM)
+  // );
 
   // State for salary edit
-  const [isEditSalaryDialogOpen, setIsEditSalaryDialogOpen] = useState(false);
-  const [currentStaffForSalaryEdit, setCurrentStaffForSalaryEdit] = useState<any>(null);
-  const [editedSalary, setEditedSalary] = useState<string>("");
+  // const [isEditSalaryDialogOpen, setIsEditSalaryDialogOpen] = useState(false);
+  // const [currentStaffForSalaryEdit, setCurrentStaffForSalaryEdit] = useState<any>(null);
+  // const [editedSalary, setEditedSalary] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState(null);
   const displayImage = selectedImage || currentMember?.profile_image;
   const [fileToUpload, setFileToUpload] = useState(null);
 
-const handleImageChange = (event) => {
+  const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      
-        const imageUrl = URL.createObjectURL(file);
-        setSelectedImage(imageUrl);
 
-        setFileToUpload(file);
-        
-       
-        setStaffDetails(prevDetails => ({
-            ...prevDetails,
-            profile_image: file 
-        }));
-        
-        event.target.value = null;
+      const imageUrl = URL.createObjectURL(file);
+      setSelectedImage(imageUrl);
+
+      setFileToUpload(file);
+
+
+      setStaffDetails(prevDetails => ({
+        ...prevDetails,
+        profile_image: file
+      }));
+
+      event.target.value = null;
     }
-};
+  };
 
   const fileInputRef = useRef(null);
   const handleCameraClick = () => {
@@ -236,7 +236,7 @@ const handleImageChange = (event) => {
 
   const [loading, setLoading] = useState(false);
   // const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
+  // const [search, setSearch] = useState("");
   const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
   const [AllStaff, setAllStaff] = useState<any[]>([]);
   const [showAddStaff, setShowAddStaff] = useState(false);
@@ -262,69 +262,69 @@ const handleImageChange = (event) => {
     monthly_salary: "",
     profile_image: null as File | null
   });
-  
+
   // Check if shift times are valid (start < end)
   const isShiftTimeValid = staffDetails.shift_start < staffDetails.shift_end;
   const fetchData = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BACKEND_URL}/api/staff/`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        const result = await response.json();
-        setAllStaff(result);
-        console.log("Fetched staff data :", result);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-
-
-  const saveShiftTimes = async (slug: string, times: { shift_start: string, shift_end: string }) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BACKEND_URL}/api/staff/${slug}/`,
+        `${import.meta.env.VITE_API_BACKEND_URL}/api/staff/`,
         {
-          method: 'PATCH',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
           },
-          body: JSON.stringify(times),
         }
       );
-      console.log(slug)
 
-      if (!response.ok) {
-        throw new Error('Failed to save shift times');
-      }
-
-      const data = await response.json();
-      console.log('Shift times saved successfully:', data);
-
-
-      setAllStaff(prevStaff =>
-        prevStaff.map(staff =>
-          staff.slug === slug
-            ? { ...staff, shift_start: times.shift_start, shift_end: times.shift_end }
-            : staff
-        )
-      );
-
-      return data;
+      const result = await response.json();
+      setAllStaff(result);
+      console.log("Fetched staff data :", result);
     } catch (error) {
-      console.error('Error saving shift times:', error);
-      throw error;
+      console.error("Error fetching data:", error);
     }
   };
+
+
+
+  // const saveShiftTimes = async (slug: string, times: { shift_start: string, shift_end: string }) => {
+  //   try {
+  //     const response = await fetch(
+  //       `${import.meta.env.VITE_API_BACKEND_URL}/api/staff/${slug}/`,
+  //       {
+  //         method: 'PATCH',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           'Authorization': `Bearer ${accessToken}`,
+  //         },
+  //         body: JSON.stringify(times),
+  //       }
+  //     );
+  //     console.log(slug)
+
+  //     if (!response.ok) {
+  //       throw new Error('Failed to save shift times');
+  //     }
+
+  //     const data = await response.json();
+  //     console.log('Shift times saved successfully:', data);
+
+
+  //     setAllStaff(prevStaff =>
+  //       prevStaff.map(staff =>
+  //         staff.slug === slug
+  //           ? { ...staff, shift_start: times.shift_start, shift_end: times.shift_end }
+  //           : staff
+  //       )
+  //     );
+
+  //     return data;
+  //   } catch (error) {
+  //     console.error('Error saving shift times:', error);
+  //     throw error;
+  //   }
+  // };
 
   // const updateSalary = async (staffSlug: string, newSalary: string) => {
   //   try {
@@ -356,20 +356,20 @@ const handleImageChange = (event) => {
   //   }
   // };
 
-  const logShiftTimes = (times: { shift_start: string, shift_end: string }) => {
-    console.log('Shift Times:', times);
-  };
+  // const logShiftTimes = (times: { shift_start: string, shift_end: string }) => {
+  //   console.log('Shift Times:', times);
+  // };
 
 
-  const formatTime12Hour = (timeString: string) => {
-    // Handle both 'HH:MM:SS' and 'HH:MM' formats
-    const timePart = timeString.split('.')[0];
-    const [hours, minutes] = timePart.split(':');
-    const hour = parseInt(hours, 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
-  };
+  // const formatTime12Hour = (timeString: string) => {
+  //   // Handle both 'HH:MM:SS' and 'HH:MM' formats
+  //   const timePart = timeString.split('.')[0];
+  //   const [hours, minutes] = timePart.split(':');
+  //   const hour = parseInt(hours, 10);
+  //   const ampm = hour >= 12 ? 'PM' : 'AM';
+  //   const hour12 = hour % 12 || 12;
+  //   return `${hour12}:${minutes} ${ampm}`;
+  // };
 
   const getShiftLabel = (start: string | null, end: string | null) => {
     if (!start || !end) return "No Shift";
@@ -385,7 +385,7 @@ const handleImageChange = (event) => {
   // ---------------  Get staff data On re render --------------- 
 
   useEffect(() => {
-    
+
 
     fetchData();
   }, [accessToken]);
@@ -496,7 +496,7 @@ const handleImageChange = (event) => {
           formData.append(key, updatedStaffDetails[key]);
         }
       }
-      
+
       // Log FormData entries
       console.log('Form Data Contents:');
       for (const pair of formData.entries()) {
@@ -558,8 +558,8 @@ const handleImageChange = (event) => {
 
 
   };
-          // --------------- Edit Staff Member Function ---------------
-   const saveStaffMember = async () => {
+  // --------------- Edit Staff Member Function ---------------
+  const saveStaffMember = async () => {
     if (!currentMember) return;
 
     setIsSaving(true);
@@ -668,12 +668,12 @@ const handleImageChange = (event) => {
 
 
 
-  const toShiftLabel = (t?: string) => {
-    if (!t) return "";
-    return getShiftLabel(t, t).toLowerCase();
-  };
+  // const toShiftLabel = (t?: string) => {
+  //   if (!t) return "";
+  //   return getShiftLabel(t, t).toLowerCase();
+  // };
 
-  const handleTimeChange = (field: "check_in" | "check_out", value: string) => setAttendanceForm(prev => ({ ...prev, [field]: value }));
+  // const handleTimeChange = (field: "check_in" | "check_out", value: string) => setAttendanceForm(prev => ({ ...prev, [field]: value }));
 
 
 
@@ -701,7 +701,7 @@ const handleImageChange = (event) => {
       member.shift_end ? `- ${member.shift_end}` : "",
     ] : []);
 
-    const initials = name.split(" ").map((n: string) => n[0]).slice(0, 2).join("");
+    // const initials = name.split(" ").map((n: string) => n[0]).slice(0, 2).join("");
 
 
 
@@ -765,7 +765,7 @@ const handleImageChange = (event) => {
               </div>
 
               <div className="flex items-center justify-between pt-2">
-                <span className="text-sm font-semibold text-green-600">${salary.toLocaleString()}/month</span>
+                <span className="text-sm font-semibold text-green-600">₹ {salary.toLocaleString()}/month</span>
                 <div className="flex space-x-1">
                   {member.shift_start && member.shift_end ? (
                     <div className="flex items-center space-x-1">
@@ -1087,7 +1087,7 @@ const handleImageChange = (event) => {
                               setStaffDetails({ ...staffDetails, profile_image: e.target.files[0] });
                             }
                           }}
-                          
+
                         />
                       </div>
 
@@ -1138,7 +1138,7 @@ const handleImageChange = (event) => {
                   type="button"
                   onClick={handleNextStep}
                   disabled={!isStep1Valid()}
-                  
+
                   className="flex items-center bg-blue-600  hover:bg-blue-700 disabled:opacity-50"
                 >
                   Next
@@ -1226,237 +1226,243 @@ const handleImageChange = (event) => {
             ))}
           </div>
 
-         {isDetailOpen && (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex justify-center z-50 p-4 overflow-auto pt-24">
-        <div className="bg-white p-3 sm:p-6 rounded-2xl shadow-2xl max-w-4xl w-full border-l-8 border-indigo-600 transform transition-all duration-300 scale-100">
+          {isDetailOpen && (
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex justify-center z-50 p-4 overflow-auto pt-24">
+              <div className="bg-white p-3 sm:p-6 rounded-2xl shadow-2xl max-w-4xl w-full border-l-8 border-indigo-600 transform transition-all duration-300 scale-100">
 
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start pb-6 mb-6 border-b border-gray-200">
-                <div className="flex items-center flex-wrap">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row justify-between items-start pb-6 mb-6 border-b border-gray-200">
+                  <div className="flex items-center flex-wrap">
                     <div className="relative mr-6 mb-4 sm:mb-0 mt-4 sm:mt-0">
 
-                        {displayImage ? (
-                            <img
-                                src={displayImage}
-                                alt={currentMember?.user_full_name || 'Staff Profile'}
-                                className="w-24 h-24 rounded-full object-cover border-4 border-indigo-200 shadow-md"
-                            />
-                        ) : (
-                            <div className="w-24 h-24 rounded-full bg-indigo-100 border-4 border-indigo-200 flex items-center justify-center">
-                                <User className="w-12 h-12 text-indigo-500" />
-                            </div>
-                        )}
-
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleImageChange}
-                            accept="image/*"
-                            className="hidden"
+                      {displayImage ? (
+                        <img
+                          src={displayImage}
+                          alt={currentMember?.user_full_name || 'Staff Profile'}
+                          className="w-24 h-24 rounded-full object-cover border-4 border-indigo-200 shadow-md"
                         />
+                      ) : (
+                        <div className="w-24 h-24 rounded-full bg-indigo-100 border-4 border-indigo-200 flex items-center justify-center">
+                          <User className="w-12 h-12 text-indigo-500" />
+                        </div>
+                      )}
 
-                        <button
-                            type="button"
-                            title="Select Image"
-                            onClick={handleCameraClick}
-                            className="absolute bottom-0 right-0 p-1 bg-indigo-600 text-white rounded-full border-2 border-white shadow-lg hover:bg-indigo-700 transition-colors"
-                        >
-                            <Camera className="w-5 h-5" />
-                        </button>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageChange}
+                        accept="image/*"
+                        className="hidden"
+                      />
+
+                      <button
+                        type="button"
+                        title="Select Image"
+                        onClick={handleCameraClick}
+                        className="absolute bottom-0 right-0 p-1 bg-indigo-600 text-white rounded-full border-2 border-white shadow-lg hover:bg-indigo-700 transition-colors"
+                      >
+                        <Camera className="w-5 h-5" />
+                      </button>
                     </div>
 
                     <div className="w-full sm:w-auto">
-                        <div className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight">
-                            {currentMember?.user_full_name || 'No Name'}
-                        </div>
-                        <div className="mt-1">
-                            <input
-                                type="text"
-                                value={currentMember?.designation || ''}
-                                onChange={(e) => handleInputChange('designation', e.target.value)}
-                                className="text-lg sm:text-xl text-indigo-600 font-semibold w-full bg-transparent border-b border-indigo-200 focus:border-indigo-500 focus:outline-none hover:border-indigo-400 transition-colors"
-                                placeholder="Enter Designation"
-                            />
-                        </div>
-                        <div className="flex items-center mt-2">
-                            <Badge className={getStatusColor(currentMember?.status)}>
-                                {currentMember?.status ? currentMember.status.charAt(0).toUpperCase() + currentMember.status.slice(1) : 'Inactive'}
-                            </Badge>
-                            {currentMember?.department && (
-                                <span className="ml-2 text-sm text-gray-600">
-                                    {currentMember.department}
-                                </span>
-                            )}
-                        </div>
+                      <div>
+                        <input
+                          type="text"
+                          value={currentMember?.user_full_name || ''}
+                          onChange={(e) => handleInputChange('user_full_name', e.target.value)}
+                          className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight w-full bg-transparent border-b border-transparent focus:border-indigo-200 focus:outline-none"
+                          placeholder="Enter Full Name"
+                        />
+                      </div>
+                      <div className="mt-1">
+                        <input
+                          type="text"
+                          value={currentMember?.designation || ''}
+                          onChange={(e) => handleInputChange('designation', e.target.value)}
+                          className="text-lg sm:text-xl text-indigo-600 font-semibold w-full bg-transparent border-b border-indigo-200 focus:border-indigo-500 focus:outline-none hover:border-indigo-400 transition-colors"
+                          placeholder="Enter Designation"
+                        />
+                      </div>
+                      <div className="flex items-center mt-2">
+                        <Badge className={getStatusColor(currentMember?.status)}>
+                          {currentMember?.status ? currentMember.status.charAt(0).toUpperCase() + currentMember.status.slice(1) : 'Inactive'}
+                        </Badge>
+                        {currentMember?.department && (
+                          <span className="ml-2 text-sm text-gray-600">
+                            {currentMember.department}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                </div>
+                  </div>
 
-                <button
+                  <button
                     onClick={() => setIsDetailOpen(false)}
                     className="text-gray-400 hover:text-red-600 text-3xl font-light p-1 transition-colors ml-auto"
-                >
+                  >
                     <XCircle className="w-8 h-8" />
-                </button>
-            </div>
+                  </button>
+                </div>
 
 
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
 
-                {/* Department */}
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  {/* Department */}
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <Briefcase className="w-5 h-5 text-indigo-500" />
                     <div className="w-full">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Department</p>
-                        <input
-                            type="text"
-                            value={currentMember.department || ''}
-                            onChange={(e) => handleInputChange('department', e.target.value)}
-                            className="text-base font-semibold text-gray-800 w-full bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none"
-                            placeholder="Enter Department"
-                        />
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Department</p>
+                      <input
+                        type="text"
+                        value={currentMember.department || ''}
+                        onChange={(e) => handleInputChange('department', e.target.value)}
+                        className="text-base font-semibold text-gray-800 w-full bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none"
+                        placeholder="Enter Department"
+                      />
                     </div>
-                </div>
+                  </div>
 
-                {/* Status */}
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  {/* Status */}
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <Activity className="w-5 h-5 text-green-500" />
                     <div className="w-full">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
-                        <select
-                            value={currentMember.status || 'active'}
-                            onChange={(e) => handleInputChange('status', e.target.value)}
-                            className="text-base font-semibold w-full bg-transparent focus:ring-0 focus:outline-none"
-                        >
-                            <option value="active" className="text-green-700 font-bold">Active</option>
-                            <option value="on_leave" className="text-yellow-600 font-bold">On Leave</option>
-                            
-                        </select>
-                    </div>
-                </div>
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
+                      <select
+                        value={currentMember.status || 'active'}
+                        onChange={(e) => handleInputChange('status', e.target.value)}
+                        className="text-base font-semibold w-full bg-transparent focus:ring-0 focus:outline-none"
+                      >
+                        <option value="active" className="text-green-700 font-bold">Active</option>
+                        <option value="on_leave" className="text-yellow-600 font-bold">On Leave</option>
 
-                {/* Shift Time */}
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Shift Time */}
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <Clock className="w-5 h-5 text-pink-500" />
                     <div className="w-full">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Shift Time</p>
-                        <div className="flex space-x-2">
-                            <input
-                                type="time"
-                                value={(currentMember.shift_start || '09:00:00').slice(0, 5)}
-                                onChange={(e) => handleInputChange('shift_start', e.target.value)}
-                                className="text-base font-semibold text-gray-800 w-1/2 bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none"
-                            />
-                            <span className="text-gray-500 font-bold">-</span>
-                            <input
-                                type="time"
-                                value={(currentMember.shift_end || '18:00:00').slice(0, 5)}
-                                onChange={(e) => handleInputChange('shift_end', e.target.value)}
-                                className="text-base font-semibold text-gray-800 w-1/2 bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none"
-                            />
-                        </div>
-                        {shiftTimeError && (
-                            <p className="text-sm text-red-600 mt-2">{shiftTimeError}</p>
-                        )}
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Shift Time</p>
+                      <div className="flex space-x-2">
+                        <input
+                          type="time"
+                          value={(currentMember.shift_start || '09:00:00').slice(0, 5)}
+                          onChange={(e) => handleInputChange('shift_start', e.target.value)}
+                          className="text-base font-semibold text-gray-800 w-1/2 bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none"
+                        />
+                        <span className="text-gray-500 font-bold">-</span>
+                        <input
+                          type="time"
+                          value={(currentMember.shift_end || '18:00:00').slice(0, 5)}
+                          onChange={(e) => handleInputChange('shift_end', e.target.value)}
+                          className="text-base font-semibold text-gray-800 w-1/2 bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none"
+                        />
+                      </div>
+                      {shiftTimeError && (
+                        <p className="text-sm text-red-600 mt-2">{shiftTimeError}</p>
+                      )}
                     </div>
-                </div>
+                  </div>
 
-                {/* Performance */}
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  {/* Performance */}
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <Activity className="w-5 h-5 text-yellow-600" />
                     <div className="w-full">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Performance (%)</p>
-                        <input
-                            type="number"
-                            value={currentMember.performance_score || 0}
-                            onChange={(e) => handleInputChange('performance_score', e.target.value)}
-                            className="text-base font-semibold text-gray-800 w-full bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none"
-                            min="0"
-                            max="100"
-                        />
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Performance (%)</p>
+                      <input
+                        type="number"
+                        value={currentMember.performance_score || 0}
+                        onChange={(e) => handleInputChange('performance_score', e.target.value)}
+                        className="text-base font-semibold text-gray-800 w-full bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none"
+                        min="0"
+                        max="100"
+                      />
                     </div>
-                </div>
+                  </div>
 
-                {/* Email */}
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  {/* Email */}
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <Mail className="w-5 h-5 text-blue-500" />
                     <div className="w-full">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</p>
-                        <input
-                            type="email"
-                            value={currentMember.user_email || ''}
-                            onChange={(e) => handleInputChange('user_email', e.target.value)}
-                            className="text-base text-blue-600 w-full bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none"
-                        />
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</p>
+                      <input
+                        type="email"
+                        value={currentMember.user_email || ''}
+                        onChange={(e) => handleInputChange('user_email', e.target.value)}
+                        className="text-base text-blue-600 w-full bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none"
+                      />
                     </div>
-                </div>
+                  </div>
 
-                {/* Phone No */}
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  {/* Phone No */}
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <Phone className="w-5 h-5 text-teal-500" />
                     <div className="w-full">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Phone No.</p>
-                        <input
-                            type="tel"
-                            value={currentMember.user_phone || ''}
-                            onChange={(e) => handleInputChange('user_phone', e.target.value)}
-                            className="text-base text-teal-600 w-full bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none"
-                        />
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Phone No.</p>
+                      <input
+                        type="tel"
+                        value={currentMember.user_phone || ''}
+                        onChange={(e) => handleInputChange('user_phone', e.target.value)}
+                        className="text-base text-teal-600 w-full bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none"
+                      />
                     </div>
-                </div>
+                  </div>
 
-                {/* Monthly Salary */}
-                <div className="col-span-2 sm:col-span-2 md:col-span-3 bg-indigo-50 border-2 border-indigo-200 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                  {/* Monthly Salary */}
+                  <div className="col-span-2 sm:col-span-2 md:col-span-3 bg-indigo-50 border-2 border-indigo-200 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
                     <div className="flex items-center space-x-3">
-                        <Banknote className="w-6 h-6 text-indigo-700" />
-                        <p className="text-sm font-medium text-indigo-700 uppercase tracking-wider">Monthly Salary</p>
+                      <Banknote className="w-6 h-6 text-indigo-700" />
+                      <p className="text-sm font-medium text-indigo-700 uppercase tracking-wider">Monthly Salary</p>
                     </div>
                     <div className="flex items-center w-full sm:w-1/3">
-                        <IndianRupee className="w-5 h-5 text-indigo-800 mr-1" />
-                        <input
-                            type="text"
-                            value={currentMember.monthly_salary || ''}
-                            onChange={(e) => handleInputChange('monthly_salary', e.target.value)}
-                            className="font-extrabold text-indigo-800 text-3xl bg-transparent border-b-2 border-indigo-400 focus:border-indigo-600 outline-none text-right w-full"
-                        />
+                      <IndianRupee className="w-5 h-5 text-indigo-800 mr-1" />
+                      <input
+                        type="text"
+                        value={currentMember.monthly_salary || ''}
+                        onChange={(e) => handleInputChange('monthly_salary', e.target.value)}
+                        className="font-extrabold text-indigo-800 text-3xl bg-transparent border-b-2 border-indigo-400 focus:border-indigo-600 outline-none text-right w-full"
+                      />
                     </div>
-                </div>
+                  </div>
 
-                <div className="col-span-1 flex justify-center items-center">
+                  <div className="col-span-1 flex justify-center items-center">
                     <button
-                        onClick={() => setIsDetailOpen(false)}
-                        className="w-full py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors text-lg font-semibold shadow-md"
+                      onClick={() => setIsDetailOpen(false)}
+                      className="w-full py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors text-lg font-semibold shadow-md"
                     >
-                        CANCEL
+                      CANCEL
                     </button>
-                </div>
+                  </div>
 
-                <div className="col-span-1 flex justify-center items-center">
+                  <div className="col-span-1 flex justify-center items-center">
                     <button
-                        onClick={saveStaffMember}
-                        disabled={isSaving || !!shiftTimeError}
-                        title={shiftTimeError ?? undefined}
-                        className={`w-full flex items-center justify-center space-x-2 ${isSaving || shiftTimeError ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'} text-white py-3 px-6 rounded-xl transition-colors text-lg font-semibold shadow-lg`}
+                      onClick={saveStaffMember}
+                      disabled={isSaving || !!shiftTimeError}
+                      title={shiftTimeError ?? undefined}
+                      className={`w-full flex items-center justify-center space-x-2 ${isSaving || shiftTimeError ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'} text-white py-3 px-6 rounded-xl transition-colors text-lg font-semibold shadow-lg`}
                     >
-                        {isSaving ? (
-                            <>
-                                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span>SAVING...</span>
-                            </>
-                        ) : (
-                            <>
-                                <CheckSquare className="w-6 h-6" />
-                                <span>SAVE CHANGES</span>
-                            </>
-                        )}
+                      {isSaving ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>SAVING...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckSquare className="w-6 h-6" />
+                          <span>SAVE CHANGES</span>
+                        </>
+                      )}
                     </button>
+                  </div>
                 </div>
+              </div>
             </div>
-        </div>
-    </div>
-)}
+          )}
 
         </TabsContent>
 
@@ -1481,10 +1487,9 @@ const handleImageChange = (event) => {
                 {/* Staff List */}
                 <div className="space-y-4">
                   <h3 className="font-semibold">Today's Schedule</h3>
-                  <>
+                  <div className="overflow-y-auto max-h-96 space-y-3">
                     {AllStaff.filter(s => s.status === 'active').map((member) => (
                       <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        {/* Avatar + Name + Designation */}
                         <div className="flex items-center space-x-3">
                           <Avatar className="w-8 h-8">
                             {member.profile_image ? (
@@ -1504,7 +1509,6 @@ const handleImageChange = (event) => {
                           </div>
                         </div>
 
-
                         <div className="flex items-center space-x-2">
                           <div className="flex space-x-1">
                             {member.shift_start && member.shift_end ? (
@@ -1522,11 +1526,10 @@ const handleImageChange = (event) => {
                               </Badge>
                             )}
                           </div>
-
                         </div>
                       </div>
                     ))}
-                  </>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -1678,42 +1681,42 @@ const handleImageChange = (event) => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {AllStaff.map((member) => (
-                  <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <Avatar className="w-8 h-8">
-                        {member.profile_image ? (
-                          <img
-                            src={member.profile_image}
-                            className="w-full h-full object-cover rounded-full"
-                          />
-                        ) : (
-                          <AvatarFallback className="flex items-center justify-center">
-                            <User className="w-5 h-5 text-gray-400" />
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
-                      <div>
-                        <h3 className="font-semibold text-sm">{member.user_full_name}</h3>
-                        <p className="text-xs text-gray-600">{member.designation || "Staff"}</p>
+                <div className="overflow-y-auto max-h-96 space-y-4">
+                  {AllStaff.map((member) => (
+                    <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="w-8 h-8">
+                          {member.profile_image ? (
+                            <img
+                              src={member.profile_image}
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : (
+                            <AvatarFallback className="flex items-center justify-center">
+                              <User className="w-5 h-5 text-gray-400" />
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div>
+                          <h3 className="font-semibold text-sm">{member.user_full_name}</h3>
+                          <p className="text-xs text-gray-600">{member.designation || "Staff"}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+
+                        <div className="text-right">
+                          <p className="font-semibold text-lg flex items-center justify-end">
+                            {/* The 'flex' and 'items-center' on the parent <p> ensures alignment */}
+                            <IndianRupee />
+                            {member.monthly_salary.toLocaleString()}
+                          </p>
+                          <p className="text-xs text-gray-600">per month</p>
+                        </div>
                       </div>
                     </div>
-
-                    <div className="flex items-center space-x-2">
-
-                      <div className="text-right">
-                        <p className="font-semibold text-lg flex items-center justify-end">
-                          {/* The 'flex' and 'items-center' on the parent <p> ensures alignment */}
-                          <IndianRupee />
-                          {member.monthly_salary.toLocaleString()}
-                        </p>
-                        <p className="text-xs text-gray-600">per month</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-
+                  ))}
+                </div>
               </div>
             </CardContent>
 
@@ -1733,70 +1736,69 @@ const handleImageChange = (event) => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {AllStaff.map((member) => (
-                  <div key={member.id} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="w-8 h-8">
-                          {member.profile_image ? (
-                            <img
-                              src={member.profile_image}
-                              className="w-full h-full object-cover rounded-full"
-                            />
-                          ) : (
-                            <AvatarFallback>
-                              <User className="w-5 h-5 text-gray-400" />
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                        <div>
-                          <h3 className="font-semibold">{member.user_full_name}</h3>
-                          <p className="text-sm text-gray-600">{member.designation}</p>
+                <div className="overflow-y-auto max-h-96 space-y-4">
+                  {AllStaff.map((member) => (
+                    <div key={member.id} className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="w-8 h-8">
+                            {member.profile_image ? (
+                              <img
+                                src={member.profile_image}
+                                className="w-full h-full object-cover rounded-full"
+                              />
+                            ) : (
+                              <AvatarFallback>
+                                <User className="w-5 h-5 text-gray-400" />
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                          <div>
+                            <h3 className="font-semibold">{member.user_full_name}</h3>
+                            <p className="text-sm text-gray-600">{member.designation}</p>
+                          </div>
+                        </div>
+
+                        <div className="text-right flex items-center space-x-2">
+                          <div>
+                            <p className="text-lg font-bold">{member.performance_score}%</p>
+                            <p className="text-xs text-gray-600">Performance Score</p>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="text-right flex items-center space-x-2">
+                      <Progress value={member.performance_score} className="h-3" />
 
+                      <div className="flex justify-between text-xs text-gray-600 mt-2">
+                        <span>
+                          Joined:{" "}
+                          {member.joining_date &&
+                            new Date(member.joining_date).toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                        </span>
 
-
-                        <div>
-                          <p className="text-lg font-bold">{member.performance_score}%</p>
-                          <p className="text-xs text-gray-600">Performance Score</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <Progress value={member.performance_score} className="h-3" />
-
-                    <div className="flex justify-between text-xs text-gray-600 mt-2">
-                      <span>
-                        Joined:{" "}
-                        {member.joining_date &&
-                          new Date(member.joining_date).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                      </span>
-
-                      <span
-                        className={
-                          member.performance_score >= 90
-                            ? "text-green-600 font-semibold"
+                        <span
+                          className={
+                            member.performance_score >= 90
+                              ? "text-green-600 font-semibold"
+                              : member.performance_score >= 80
+                                ? "text-yellow-600 font-semibold"
+                                : "text-red-600 font-semibold"
+                          }
+                        >
+                          {member.performance_score >= 90
+                            ? "Excellent"
                             : member.performance_score >= 80
-                              ? "text-yellow-600 font-semibold"
-                              : "text-red-600 font-semibold"
-                        }
-                      >
-                        {member.performance_score >= 90
-                          ? "Excellent"
-                          : member.performance_score >= 80
-                            ? "Good"
-                            : "Needs Improvement"}
-                      </span>
+                              ? "Good"
+                              : "Needs Improvement"}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </CardContent>
 
