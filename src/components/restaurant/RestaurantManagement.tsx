@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, Users, Plus, Search, Settings2, Clock,UtensilsCrossed } from "lucide-react";
+import { Menu, Users, Plus, Search, Settings2, Clock, UtensilsCrossed, Image } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { RestaurantOrder } from "./RestaurantOrder";
 import { TableBooking } from "./TableBooking";
@@ -43,6 +43,8 @@ interface Order {
 }
 
 export const RestaurantManagement = () => {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [activeTab, setActiveTab] = useState("tables");
   const accessToken = localStorage.getItem('accessToken'); // get token from localStorage
   const [getMenuCategories, setGetMenuCategories] = useState([]);
@@ -256,7 +258,7 @@ export const RestaurantManagement = () => {
     const updatedTable = {
       ...newTable,
       number: newTable?.tableNo,
-      status: newTable.status.toLowerCase(), 
+      status: newTable.status.toLowerCase(),
     };
 
     try {
@@ -278,16 +280,16 @@ export const RestaurantManagement = () => {
         newTable.reservation = null;
         newTable.tableNo = undefined;
 
-    // ✅ success logic yahan likho
-  } else {
-    throw new Error(`Failed to add table: ${await response.text()}`);
+        // ✅ success logic yahan likho
+      } else {
+        throw new Error(`Failed to add table: ${await response.text()}`);
+      }
+    } catch (error) {
+      console.error("Error adding table:", error);
+    }
   }
-}catch(error){
-  console.error("Error adding table:", error);
-}
-}
 
-const getMenuItemsCategories = async () => {
+  const getMenuItemsCategories = async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/menu-categories/`, {
         method: 'GET',
@@ -307,41 +309,44 @@ const getMenuItemsCategories = async () => {
     }
   };
 
-     const addMenu = async (e) => {
-       e.preventDefault();
-       try{
+  const addMenu = async (e) => {
+    e.preventDefault();
+    try {
 
-       const payload = {
-         ...newMenu,
-         category: newMenu.category?.toLowerCase() ?? "",
-       };
-       const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/menu-items/`, {
-         method: 'POST',
-         headers: {
-           "Content-Type": "application/json", // ✅ yeh zaroori hai
-           Authorization: `Bearer ${accessToken}`, // ✅ token agar protected API hai
-         },
-         body: JSON.stringify(payload), // ✅ stringify zaroori hai
-       });
-       const data = await response.json();
-       if (response.ok) {
-         alert("Menu item added successfully!");
-         setShowAddMenu(false);
-         setNewMenu({
-           id: "",
-           name: "",
-           price: "",
-           category: getMenuCategories[0]?.name ?? "",
-           availability: "available",
-           hotel: "Ocean View Resort", // optional pre-filled
-         });
-       } else {
-         throw new Error(`Failed to add menu item: ${await response.text()}`);
-       }
-      } catch (error) {
-        console.error("Error adding menu item:", error);
+      const payload = {
+        ...newMenu,
+        category: newMenu.category?.toLowerCase() ?? "",
+      };
+      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/menu-items/`, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json", // ✅ yeh zaroori hai
+          Authorization: `Bearer ${accessToken}`, // ✅ token agar protected API hai
+        },
+        body: JSON.stringify(payload), // ✅ stringify zaroori hai
+      });
+      //  console.log("Payload sent:", payload);
+      const data = await response.json();
+      if (response.ok) {
+        alert("Menu item added successfully!");
+        setShowAddMenu(false);
+        setNewMenu({
+          id: "",
+          name: "",
+          price: "",
+          category: getMenuCategories[0]?.name ?? "",
+          availability: "available",
+          hotel: "Ocean View Resort", // optional pre-filled
+          description: "", // optional pre-filled
+          image: null, // optional pre-filled
+        });
+      } else {
+        throw new Error(`Failed to add menu item: ${data.message || JSON.stringify(data)}`);
       }
-     };
+    } catch (error) {
+      console.error("Error adding menu item:", error);
+    }
+  };
 
 
   const getTable = async () => {
@@ -366,35 +371,37 @@ const getMenuItemsCategories = async () => {
   };
 
   useEffect(() => {
-  // Pehli baar function call
-  getTable();
-  getMenuItemsCategories();
-  getHotelMenu();
-
-
-  // Set interval to call every 6 seconds
-  const intervalId = setInterval(() => {
+    // Pehli baar function call
     getTable();
     getMenuItemsCategories();
     getHotelMenu();
 
-  }, 6000); // 6000 ms = 6 seconds
 
-  // Cleanup function to clear interval jab component unmount ho
-  return () => clearInterval(intervalId);
-}, []);
+    // Set interval to call every 6 seconds
+    const intervalId = setInterval(() => {
+      getTable();
+      getMenuItemsCategories();
+      getHotelMenu();
 
-  
+    }, 6000); // 6000 ms = 6 seconds
+
+    // Cleanup function to clear interval jab component unmount ho
+    return () => clearInterval(intervalId);
+  }, []);
+
+
   //showaddmenu
 
   const [newMenu, setNewMenu] = useState({
-  id: "",
-  name: "",
-  price: "",
-  category: getMenuCategories[0]?.name ?? "",
-  availability: "available",
-  hotel: "Ocean View Resort", // optional pre-filled
-});
+    id: "",
+    name: "",
+    price: "",
+    category: getMenuCategories[0]?.name ?? "",
+    availability: "available",
+    hotel: "Ocean View Resort", // optional pre-filled
+    description: "", // optional pre-filled
+    image: null, // optional pre-filled
+  });
 
 
 
@@ -490,34 +497,34 @@ const getMenuItemsCategories = async () => {
     setReserveName("");
   };
 
-console.log(dashboardSummary)
-  const handleDashboard = async()=> {
-    try{
-        const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/dashboard/dashboard-summary/`, {
-          method: 'GET',
-           headers: {
+  // console.log(dashboardSummary)
+  const handleDashboard = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/dashboard/dashboard-summary/`, {
+        method: 'GET',
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${accessToken}`, // include token
         },
-        }) 
+      })
 
-        const data = await response.json();
+      const data = await response.json();
 
-               if(response.ok){
-                   setDashboardSummary(data)
-                 }else{
-                   throw new Error(`Failed to get dashboard summary: ${await response.text()}`);
-                 }
+      if (response.ok) {
+        setDashboardSummary(data)
+      } else {
+        throw new Error(`Failed to get dashboard summary: ${await response.text()}`);
+      }
 
     }
-    catch(error){
+    catch (error) {
       alert("Something went wrong");
       console.log(error);
     }
   }
 
   useEffect(() => {
-  handleDashboard();
+    handleDashboard();
   }, []);
 
   const [orderBoxes, setOrderBoxes] = useState([
@@ -549,7 +556,7 @@ console.log(dashboardSummary)
   const grandTotal = subtotal + sgst + cgst;
 
 
-  
+
 
   return (
     <div className="space-y-6 px-2 sm:px-4 md:px-8 max-w-[1600px] mx-auto">
@@ -579,12 +586,12 @@ console.log(dashboardSummary)
             New Reservation
           </Button>
           <Button
-  className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 w-full sm:w-auto"
-  onClick={() => setShowAddMenu(true)}
->
-  <UtensilsCrossed className="w-4 h-4 mr-2" />
-  Add Menu Item
-</Button>
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 w-full sm:w-auto"
+            onClick={() => setShowAddMenu(true)}
+          >
+            <UtensilsCrossed className="w-4 h-4 mr-2" />
+            Add Menu Item
+          </Button>
 
 
         </div>
@@ -692,95 +699,163 @@ console.log(dashboardSummary)
           </form>
         </DialogContent>
       </Dialog>
-      
-      {/*show add menu dialog*/}    
+
+      {/*show add menu dialog*/}
       <Dialog open={showAddMenu} onOpenChange={setShowAddMenu}>
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>Add Menu Item</DialogTitle>
-    </DialogHeader>
+        <DialogContent className="max-w-full sm:max-w-lg overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Menu Item</DialogTitle>
+          </DialogHeader>
 
-    <form onSubmit={addMenu} className="space-y-4">
-      <div>
-        <Label htmlFor="id">Item ID</Label>
-        <Input
-          id="id"
-          value={newMenu.id}
-          onChange={(e) => setNewMenu(m => ({ ...m, id: e.target.value }))}
-          required
-          placeholder="e.g. M101"
-        />
-      </div>
+          <form onSubmit={addMenu} className="space-y-4">
+            {/* 1. ID */}
+            <div>
+              <Label htmlFor="id">Item ID</Label>
+              <Input
+                id="id"
+                value={newMenu.id}
+                onChange={(e) => setNewMenu(m => ({ ...m, id: e.target.value }))}
+                required
+                placeholder="e.g. M101"
+              />
+            </div>
 
-      <div>
-        <Label htmlFor="name">Item Name</Label>
-        <Input
-          id="name"
-          value={newMenu.name}
-          onChange={(e) => setNewMenu(m => ({ ...m, name: e.target.value }))}
-          required
-          placeholder="e.g. Paneer Butter Masala"
-        />
-      </div>
+            {/* 2. Name */}
+            <div>
+              <Label htmlFor="name">Item Name</Label>
+              <Input
+                id="name"
+                value={newMenu.name}
+                onChange={(e) => setNewMenu(m => ({ ...m, name: e.target.value }))}
+                required
+                placeholder="e.g. Paneer Butter Masala"
+              />
+            </div>
 
-      <div>
-        <Label htmlFor="price">Price (₹)</Label>
-        <Input
-          id="price"
-          type="number"
-          value={newMenu.price}
-          onChange={(e) => setNewMenu(m => ({ ...m, price: e.target.value }))}
-          required
-        />
-      </div>
+            {/* 3. Price */}
+            <div>
+              <Label htmlFor="price">Price (₹)</Label>
+              <Input
+                id="price"
+                type="number"
+                value={newMenu.price}
+                onChange={(e) => setNewMenu(m => ({ ...m, price: e.target.value }))}
+                required
+              />
+            </div>
 
-      <div>
-        <Label htmlFor="category">Category</Label>
-        <select
-          id="category"
-          className="w-full border rounded px-2 py-1"
-          value={newMenu.category}
-          onChange={(e) => setNewMenu(m => ({ ...m, category: e.target.value }))}
+            {/* 4 & 5. Category and Availability */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="category">Category</Label>
+                <select
+                  id="category"
+                  className="w-full border rounded px-2 py-2"
+                  value={newMenu.category}
+                  onChange={(e) => setNewMenu(m => ({ ...m, category: e.target.value }))}
+                >
+                  {getMenuCategories.map((cat) => (
+                    <option key={cat.slug} value={cat.slug}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
+              <div>
+                <Label htmlFor="availability">Availability</Label>
+                <select
+                  id="availability"
+                  className="w-full border rounded px-2 py-2"
+                  value={newMenu.availability}
+                  onChange={(e) => setNewMenu(m => ({ ...m, availability: e.target.value }))}
+                >
+                  <option value="available">Available</option>
+                  <option value="unavailable">Unavailable</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Image Upload */}
+          
+<div className="space-y-2">
+  <Label>Item Image</Label>
+
+  {/* Responsive layout */}
+  <div className="flex flex-wrap items-start gap-3">
+    <Input
+      ref={fileInputRef} // 👈 added ref
+      id="image-upload"
+      type="file"
+      accept="image/*"
+      className="hidden"
+      onChange={(e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          const imageUrl = URL.createObjectURL(file);
+          setNewMenu((m) => ({ ...m, image: imageUrl, file }));
+        }
+      }}
+    />
+
+    {/* Narrower button on mobile */}
+    <label
+      htmlFor="image-upload"
+      className="flex-shrink-0 flex items-center justify-center border rounded-lg h-10 px-2 sm:px-4 cursor-pointer text-sm font-medium hover:bg-gray-50 w-28 sm:w-auto"
+    >
+      <Image className="mr-2 h-4 w-4" />
+      Choose
+    </label>
+
+    {/* Image Preview */}
+    {newMenu.image && (
+      <div className="relative flex-1 min-w-[150px] sm:min-w-[180px] sm:max-w-[50%]">
+        {/* 👆 Reduced max width from 70% → 50% on desktop */}
+
+        <div className="w-full h-[130px] sm:h-[120px] rounded-lg overflow-hidden border">
+          <img
+            src={newMenu.image}
+            alt="Item Preview"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        <button
+          type="button"
+          className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold border-2 border-white shadow-md z-10"
+          onClick={() => {
+            setNewMenu((m) => ({ ...m, image: null, file: null }));
+            if (fileInputRef.current) fileInputRef.current.value = ""; // 👈 proper reset
+          }}
         >
-          {getMenuCategories.map((cat) => (
-            <option key={cat.name} value={cat.name}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
+          X
+        </button>
       </div>
+    )}
+  </div>
+</div>
 
-      <div>
-        <Label htmlFor="availability">Availability</Label>
-        <select
-          id="availability"
-          className="w-full border rounded px-2 py-1"
-          value={newMenu.availability}
-          onChange={(e) => setNewMenu(m => ({ ...m, availability: e.target.value }))}
-        >
-          <option value="available">Available</option>
-          <option value="unavailable">Unavailable</option>
-        </select>
-      </div>
 
-      {/* <div>
-        <Label htmlFor="hotel">Hotel</Label>
-        <Input
-          id="hotel"
-          type="text"
-          value={newMenu.hotel}
-          readOnly
-        />
-      </div> */}
+            {/* Description */}
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <textarea
+                id="description"
+                className="w-full border rounded px-2 py-1 min-h-[80px]"
+                value={newMenu.description}
+                onChange={(e) => setNewMenu(m => ({ ...m, description: e.target.value }))}
+                placeholder="A short description of the menu item..."
+              />
+            </div>
 
-      <DialogFooter>
-        <Button type="submit">Add Item</Button>
-      </DialogFooter>
-    </form>
-  </DialogContent>
-</Dialog>
-      
+            <DialogFooter>
+              <Button type="submit">Add Item</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+
       {/* Reserve Table Dialog */}
       <Dialog
         open={!!reserveTable}
@@ -1162,25 +1237,25 @@ console.log(dashboardSummary)
                 </div>
               ))} */}
 
-<div className="w-fit grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-4 mt-[-10px] justify-start ">
-  {tables.map((table, i) => (
-    <div
-      key={table.id}
-      className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-110 hover:shadow-lg ${getStatusColor(
-        table.status
-      )}`}
-      onClick={() => setReserveTable(table)}
-    >
-      <span className="text-xs font-bold">{i+1}</span>
-      <span className="text-xs">{table.capacity}p</span>
-      {table.id.includes("VIP") && (
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
-          <span className="text-xs text-white">★</span>
-        </div>
-      )}
-    </div>
-  ))}
-</div>
+              <div className="w-fit grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-4 mt-[-10px] justify-start ">
+                {tables.map((table, i) => (
+                  <div
+                    key={table.id}
+                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-110 hover:shadow-lg ${getStatusColor(
+                      table.status
+                    )}`}
+                    onClick={() => setReserveTable(table)}
+                  >
+                    <span className="text-xs font-bold">{i + 1}</span>
+                    <span className="text-xs">{table.capacity}p</span>
+                    {table.id.includes("VIP") && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
+                        <span className="text-xs text-white">★</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
 
 
               {/* Enhanced Legend */}
@@ -1209,7 +1284,7 @@ console.log(dashboardSummary)
 
             {/* Table Grid View */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {tables.map((table,i) => (
+              {tables.map((table, i) => (
                 <TableDetailsPopup
                   table={table}
                   trigger={
@@ -1217,7 +1292,7 @@ console.log(dashboardSummary)
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <h3 className="font-bold text-xl text-primary">
-                            T0{i+1}
+                            T0{i + 1}
                           </h3>
                           {table.id.includes("VIP") && (
                             <Badge className="bg-amber-100 text-amber-800 border-amber-200">
