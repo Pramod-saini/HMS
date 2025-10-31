@@ -1,8 +1,8 @@
-import { useEffect, useState,useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, Users, Plus, Search, Settings2, Clock, UtensilsCrossed, Image } from "lucide-react";
+import { Menu, Users, Plus, Search, Settings2, Clock, UtensilsCrossed, Image, XCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { RestaurantOrder } from "./RestaurantOrder";
 import { TableBooking } from "./TableBooking";
@@ -42,12 +42,12 @@ interface Order {
   time: string;
 }
 
-export const RestaurantManagement = () => {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  export const RestaurantManagement = () => {
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [activeTab, setActiveTab] = useState("tables");
-  const accessToken = localStorage.getItem('accessToken'); // get token from localStorage
-  const [getMenuCategories, setGetMenuCategories] = useState([]);
+    const [activeTab, setActiveTab] = useState("tables");
+    const accessToken = localStorage.getItem('accessToken'); // get token from localStorage
+    const [getMenuCategories, setGetMenuCategories] = useState([]);
 
   const [tables, setTables] = useState<Table[]>([
     // {
@@ -229,6 +229,19 @@ export const RestaurantManagement = () => {
         return "bg-muted text-muted-foreground border-border";
     }
   };
+  
+
+  const [newMenu, setNewMenu] = useState({
+    id: "",
+    name: "",
+    price: "",
+    category: "",
+    is_available: "true",
+    hotel: "Ocean View Resort", // optional pre-filled
+    description: "", // optional pre-filled
+    image: null, // optional pre-filled
+    file: null, // optional pre-filled
+  });
 
   const tableStats = {
     available: tables.filter((t) => t.status === "available").length,
@@ -312,21 +325,38 @@ export const RestaurantManagement = () => {
   const addMenu = async (e) => {
     e.preventDefault();
     try {
+      const formData = new FormData();
+      formData.append("name", newMenu.name);
+      formData.append("price", newMenu.price);
+      formData.append("category", newMenu.category || "");
+      formData.append("is_available", newMenu.is_available);
+      formData.append("hotel", newMenu.hotel);
+      formData.append("description", newMenu.description);
 
-      const payload = {
-        ...newMenu,
-        category: newMenu.category?.toLowerCase() ?? "",
-      };
-      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/menu-items/`, {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json", // ✅ yeh zaroori hai
-          Authorization: `Bearer ${accessToken}`, // ✅ token agar protected API hai
-        },
-        body: JSON.stringify(payload), // ✅ stringify zaroori hai
-      });
-      //  console.log("Payload sent:", payload);
+      if (newMenu.file) {
+        formData.append("image", newMenu.file); // 👈 File object, not image URL
+      }
+
+
+      console.log("🧾 FormData content:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BACKEND_URL}/api/menu-items/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // ✅ sirf token header me rakhna hai
+            // ❌ "Content-Type" mat set karo — browser khud multipart boundary set karega
+          },
+          body: formData,
+        }
+      );
+
       const data = await response.json();
+
       if (response.ok) {
         alert("Menu item added successfully!");
         setShowAddMenu(false);
@@ -334,19 +364,23 @@ export const RestaurantManagement = () => {
           id: "",
           name: "",
           price: "",
-          category: getMenuCategories[0]?.name ?? "",
-          availability: "available",
-          hotel: "Ocean View Resort", // optional pre-filled
-          description: "", // optional pre-filled
-          image: null, // optional pre-filled
+          category: "",
+          is_available: "true",
+          hotel: "Ocean View Resort",
+          description: "",
+          image: null,
+          file: null,
         });
       } else {
-        throw new Error(`Failed to add menu item: ${data.message || JSON.stringify(data)}`);
+        throw new Error(
+          `Failed to add menu item: ${data.message || JSON.stringify(data)}`
+        );
       }
     } catch (error) {
       console.error("Error adding menu item:", error);
     }
   };
+
 
 
   const getTable = async () => {
@@ -383,7 +417,7 @@ export const RestaurantManagement = () => {
       getMenuItemsCategories();
       getHotelMenu();
 
-    }, 6000); // 6000 ms = 6 seconds
+    }, 30000); // 6000 ms = 6 seconds
 
     // Cleanup function to clear interval jab component unmount ho
     return () => clearInterval(intervalId);
@@ -392,16 +426,7 @@ export const RestaurantManagement = () => {
 
   //showaddmenu
 
-  const [newMenu, setNewMenu] = useState({
-    id: "",
-    name: "",
-    price: "",
-    category: getMenuCategories[0]?.name ?? "",
-    availability: "available",
-    hotel: "Ocean View Resort", // optional pre-filled
-    description: "", // optional pre-filled
-    image: null, // optional pre-filled
-  });
+
 
 
 
@@ -753,7 +778,11 @@ export const RestaurantManagement = () => {
                   className="w-full border rounded px-2 py-2"
                   value={newMenu.category}
                   onChange={(e) => setNewMenu(m => ({ ...m, category: e.target.value }))}
+                  required
                 >
+                  <option value="" disabled>
+                    Select an Option
+                  </option>
                   {getMenuCategories.map((cat) => (
                     <option key={cat.slug} value={cat.slug}>
                       {cat.name}
@@ -762,78 +791,120 @@ export const RestaurantManagement = () => {
                 </select>
               </div>
 
-              <div>
-                <Label htmlFor="availability">Availability</Label>
-                <select
-                  id="availability"
-                  className="w-full border rounded px-2 py-2"
-                  value={newMenu.availability}
-                  onChange={(e) => setNewMenu(m => ({ ...m, availability: e.target.value }))}
-                >
-                  <option value="available">Available</option>
-                  <option value="unavailable">Unavailable</option>
-                </select>
+              <div className="space-y-1">
+                <Label htmlFor="avail-toggle">Availability</Label>
+
+                <div className="flex items-center space-x-3">
+                  {/* NO */}
+                  <span
+                    className={`text-sm font-medium transition-colors duration-300 ${newMenu.is_available === 'true' ? 'text-gray-400' : 'text-red-600'
+                      }`}
+                  >
+                    NO
+                  </span>
+
+                  {/* Toggle */}
+                  <label className="relative inline-flex items-center cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      id="avail-toggle"
+                      className="sr-only peer"
+                      checked={newMenu.is_available === 'true'}
+                      onChange={(e) =>
+                        setNewMenu((m) => ({
+                          ...m,
+                          is_available: e.target.checked ? 'true' : 'false',
+                        }))
+                      }
+                    />
+                    <div
+                      className={`w-11 h-6 bg-gray-300 rounded-full peer 
+                    peer-checked:bg-blue-600 
+                    transition-colors duration-300 ease-in-out
+                    after:content-[''] after:absolute after:top-[2px] after:start-[2px] 
+                    after:bg-white after:border after:border-gray-300 after:rounded-full 
+                    after:h-5 after:w-5 
+                    after:transition-transform after:duration-300 after:ease-in-out
+                    peer-checked:after:translate-x-full 
+                    peer-checked:after:border-white
+                    shadow-inner`}
+                    />
+                  </label>
+
+                  {/* YES */}
+                  <span
+                    className={`text-sm font-medium transition-colors duration-300 ${newMenu.is_available === 'true' ? 'text-green-600' : 'text-gray-400'
+                      }`}
+                  >
+                    YES
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* Image Upload */}
-          
-<div className="space-y-2">
-  <Label>Item Image</Label>
 
-  {/* Responsive layout */}
-  <div className="flex flex-wrap items-start gap-3">
-    <Input
-      ref={fileInputRef} // 👈 added ref
-      id="image-upload"
-      type="file"
-      accept="image/*"
-      className="hidden"
-      onChange={(e) => {
-        const file = e.target.files?.[0];
-        if (file) {
-          const imageUrl = URL.createObjectURL(file);
-          setNewMenu((m) => ({ ...m, image: imageUrl, file }));
-        }
-      }}
-    />
+            <div className="space-y-2">
+              <Label>Item Image</Label>
 
-    {/* Narrower button on mobile */}
-    <label
-      htmlFor="image-upload"
-      className="flex-shrink-0 flex items-center justify-center border rounded-lg h-10 px-2 sm:px-4 cursor-pointer text-sm font-medium hover:bg-gray-50 w-28 sm:w-auto"
-    >
-      <Image className="mr-2 h-4 w-4" />
-      Choose
-    </label>
+              {/* Responsive layout */}
+              <div className="flex flex-wrap items-start gap-3">
+                <Input
+                  ref={fileInputRef} // 👈 added ref
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const imageUrl = URL.createObjectURL(file);
+                      setNewMenu((m) => ({
+                        ...m,
+                        image: imageUrl, // preview ke liye URL
+                        file: file,      // upload ke liye actual file
+                      }));
+                    }
+                  }}
 
-    {/* Image Preview */}
-    {newMenu.image && (
-      <div className="relative flex-1 min-w-[150px] sm:min-w-[180px] sm:max-w-[50%]">
-        {/* 👆 Reduced max width from 70% → 50% on desktop */}
+                />
 
-        <div className="w-full h-[130px] sm:h-[120px] rounded-lg overflow-hidden border">
-          <img
-            src={newMenu.image}
-            alt="Item Preview"
-            className="w-full h-full object-cover"
-          />
-        </div>
+                {/* Narrower button on mobile */}
+                <label
+                  htmlFor="image-upload"
+                  className="flex-shrink-0 flex items-center justify-center border rounded-lg h-10 px-2 sm:px-4 cursor-pointer text-sm font-medium hover:bg-gray-50 w-28 sm:w-auto"
+                >
+                  <Image className="mr-2 h-4 w-4" />
+                  Choose
+                </label>
 
-        <button
-          type="button"
-          className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold border-2 border-white shadow-md z-10"
-          onClick={() => {
-            setNewMenu((m) => ({ ...m, image: null, file: null }));
-            if (fileInputRef.current) fileInputRef.current.value = ""; // 👈 proper reset
-          }}
-        >
-          X
-        </button>
-      </div>
-    )}
-  </div>
-</div>
+                {/* Image Preview */}
+                {newMenu.image && (
+                  <div className="relative flex-1 min-w-[150px] sm:min-w-[180px] sm:max-w-[50%]">
+                    {/* 👆 Reduced max width from 70% → 50% on desktop */}
+
+                    <div className="w-full h-[130px] sm:h-[120px] rounded-lg overflow-hidden border">
+                      <img
+                        src={newMenu.image}
+                        alt="Item Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold border-2 border-white shadow-md z-10"
+                      onClick={() => {
+                        setNewMenu((m) => ({ ...m, image: null, file: null }));
+                        if (fileInputRef.current) fileInputRef.current.value = ""; // 👈 proper reset
+                      }}
+                    >
+                      <XCircle />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
 
 
             {/* Description */}
@@ -1216,26 +1287,7 @@ export const RestaurantManagement = () => {
           <CardContent>
             {/* Enhanced Visual Floor Plan */}
             <div className="relative bg-gradient-to-br from-secondary/20 to-primary/5 rounded-xl p-2 sm:p-6 h-72 sm:h-80 mb-6 overflow-hidden border">
-              {/* {tables.map((table,i) => (
-            <div className="relative bg-gradient-to-br from-secondary/20 to-primary/5 rounded-xl p-2 sm:p-6 h-72 sm:h-80 mb-6 overflow-x-auto border">
-              {tables.map((table, i) => (
-                <div
-                  key={table.id}
-                  className={`absolute w-16 h-16 sm:w-20 sm:h-20 rounded-xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-110 hover:shadow-lg ${getStatusColor(
-                    table.status
-                  )}`}
-                  style={{ left: `${table.x}px`, top: `${table.y + 40}px` }}
-                  onClick={() => setReserveTable(table)}
-                >
-                  <span className="text-xs font-bold">{table.id}</span>
-                  <span className="text-xs">{table.capacity}p</span>
-                  {table.id.includes("VIP") && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
-                      <span className="text-xs text-white">★</span>
-                    </div>
-                  )}
-                </div>
-              ))} */}
+              
 
               <div className="w-fit grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-4 mt-[-10px] justify-start ">
                 {tables.map((table, i) => (
