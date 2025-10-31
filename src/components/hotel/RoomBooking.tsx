@@ -23,7 +23,7 @@ interface Room {
   available: boolean;
   rating: number;
   description: string;
-  hotel: string;
+  hotel_slug: string;
   slug: string;
   status: string;
 }
@@ -179,7 +179,7 @@ const [matchedCategories, setMatchedCategories] = useState([]);
 
 
     const availableRooms = data.filter(room => room.status === "available");
-    console.log(availableRooms);
+    console.log( "alote rooms", availableRooms);
     setAvailableRooms(availableRooms);
 
     alert("All Room Fetched Successfully");
@@ -192,8 +192,7 @@ const [matchedCategories, setMatchedCategories] = useState([]);
 
     const toYYYYMMDD = (d) => new Date(d).toISOString().split('T')[0];
 
-
-    if (!selectedRoom || !checkInDate || !checkOutDate) return alert("Please complete all booking details");
+    if (!selectedRoom || !checkInDate || !checkOutDate || !selectedRoom?.slug) return alert("Please complete all booking details");
     const bookingDetails = {
 
       check_in: toYYYYMMDD(checkInDate),
@@ -201,10 +200,9 @@ const [matchedCategories, setMatchedCategories] = useState([]);
       guests_count: guests,
       status: "confirmed",
       room: selectedRoom?.slug,
-      hotel: selectedRoom?.hotel,
+      hotel: selectedRoom?.hotel_slug,
       guests: [{ first_name: guestInfo?.firstName, last_name: guestInfo?.lastName, email: guestInfo?.email, phone: guestInfo?.phone, address: guestInfo?.address, gender: "", id_proof_type: guestInfo?.idType, id_proof_number: guestInfo?.idNumber, special_request: guestInfo?.specialRequests }]
     };
-    console.log(bookingDetails);
     try {
       const accessToken = localStorage.getItem("accessToken");
       const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/api/bookings/`, {
@@ -216,7 +214,6 @@ const [matchedCategories, setMatchedCategories] = useState([]);
         body: JSON.stringify(bookingDetails),
       });
       const data = await response.json();
-      console.log(data);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -340,9 +337,10 @@ const [matchedCategories, setMatchedCategories] = useState([]);
               Modify Search
             </Button>
           </div>
-
+{/* 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {availableRooms.map((room) => {
+                  console.log("Room Data:", room);
                   const matched = matchedCategories.find((item) => item.roomId === room.id);
                   return(
                   <Card key={room.id} className="hover:shadow-lg transition-shadow">
@@ -354,7 +352,7 @@ const [matchedCategories, setMatchedCategories] = useState([]);
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <h4 className="font-semibold">
-                            {matched?.categoryName || "Unknown"}
+                            {room?.room_number || "Unknown"}
                           </h4>
                           <div className="flex items-center space-x-1">
                             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -381,10 +379,10 @@ const [matchedCategories, setMatchedCategories] = useState([]);
                               +{room.amenities.length - 3} more
                             </Badge>
                           )}
-                        </div> */}
+                        </div> 
                         <div className="flex items-center justify-between pt-2 border-t">
                           <div>
-                            <span className="text-2xl font-bold text-green-600">${ matched?.price || "N/A"}</span>
+                            <span className="text-2xl font-bold text-green-600">${ room?.price_per_night || "N/A"}</span>
                             <span className="text-sm text-gray-600">/night</span>
                           </div>
                           <Button onClick={() => handleRoomSelect(room, matched)}>
@@ -396,7 +394,69 @@ const [matchedCategories, setMatchedCategories] = useState([]);
                   </Card>
                  ) }
                 )}
+              </div> */}
+
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  {availableRooms.map((room, i) => {
+    console.log("Room Data:", room);
+    const matched = matchedCategories.find((item) => item.roomId === room.id);
+
+    return (
+      <Card key={room.id} className="hover:shadow-lg transition-shadow">
+        <CardContent className="p-4">
+          {/* 🔽 Image Container */}
+          <div className="aspect-video bg-gray-200 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
+            {room?.media && room.media.length > 0 ? (
+              <img
+                src={room?.media[i]?.media_files} // first image show kar rahe hain
+                alt={room.room_number || "Room image"}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              // agar image na ho to fallback gray box
+              <div className="flex items-center justify-center w-full h-full text-gray-400">
+                <span>No Image</span>
               </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold">
+                {room?.room_number || "Unknown"}
+              </h4>
+              <div className="flex items-center space-x-1">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <span className="text-sm">{room.rating}</span>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-600">{room.description}</p>
+
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <Users className="w-4 h-4" />
+              <span>Up to {room.capacity} guests</span>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t">
+              <div>
+                <span className="text-2xl font-bold text-green-600">
+                  ${room?.price_per_night || "N/A"}
+                </span>
+                <span className="text-sm text-gray-600">/night</span>
+              </div>
+              <Button onClick={() => handleRoomSelect(room, matched)}>
+                Select Room
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  })}
+</div>
+
         </div>
       )}
 
