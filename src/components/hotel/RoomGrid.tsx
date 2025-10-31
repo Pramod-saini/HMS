@@ -14,6 +14,7 @@ interface Room {
   room_number: string;
   id: string;
   room_category: string;
+  room_code: string;
   status: string;
   price_per_night: number;
   guest: string | null;
@@ -45,6 +46,8 @@ export const RoomGrid = ({
 }: RoomGridProps) => {
   const [Roomcategories, setRoomcategories] = useState<RoomCategory[]>([]);
 
+  
+
   const handleGetRoomcategories = async () => {
     const accessToken = localStorage.getItem("accessToken");
     try {
@@ -61,7 +64,6 @@ export const RoomGrid = ({
       console.error("Error in fetching room categories:", error);
     }
   };
-
   useEffect(() => {
     handleGetRoomcategories();
   }, [rooms]);
@@ -69,12 +71,16 @@ export const RoomGrid = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {rooms.map((room) => {
-        const matchedCategory = Roomcategories.find((cat) => cat.name === room.room_category);
-
+        const matchedCategory = Roomcategories.find((cat) =>{ 
+          const formattedName = cat.name.replace(/\s+/g, "-");
+          if(formattedName === room.room_category){
+            return cat;
+          }
+        });
         return (
           <div key={room.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-lg">{room.room_number}</h3>
+              <h3 className="font-semibold text-lg">{room.room_code}</h3>
               <Badge className={getStatusColor(room.status)}>
                 {room.status}
               </Badge>
@@ -90,7 +96,9 @@ export const RoomGrid = ({
               </p>
 
               <p className="text-sm text-gray-600">
-                Price: <span className="font-medium text-green-600">₹{matchedCategory?.price_per_night ?? "N/A"}/night</span>
+                Price: <span className="font-medium text-green-600">₹{ matchedCategory?.price_per_night
+  ? Number(matchedCategory.price_per_night).toFixed(2)
+  : "N/A"}/night</span>
               </p>
 
               {room.guest && (
